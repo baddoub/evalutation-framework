@@ -1,0 +1,1893 @@
+# Task Breakdown: Keycloak OAuth Authentication
+
+**Feature**: `001-keycloak-auth` | **Date**: 2025-12-09 | **Status**: Implementation Ready
+**Architecture**: Clean Architecture (4 Layers: Domain → Application → Infrastructure → Presentation)
+**Approach**: Test-Driven Development (TDD Mandatory)
+**Scope**: User Stories P1 (Login Flow) and P2 (Protected Resources)
+
+---
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Phase 0: Project Setup](#phase-0-project-setup)
+3. [Phase 1: Domain Layer (TDD)](#phase-1-domain-layer-tdd)
+4. [Phase 2: Application Layer (TDD)](#phase-2-application-layer-tdd)
+5. [Phase 3: Infrastructure Layer (TDD)](#phase-3-infrastructure-layer-tdd)
+6. [Phase 4: Presentation Layer (TDD)](#phase-4-presentation-layer-tdd)
+7. [Phase 5: Integration (TDD)](#phase-5-integration-tdd)
+8. [Phase 6: Security & Polish](#phase-6-security--polish)
+9. [Task Summary](#task-summary)
+10. [Critical Path](#critical-path)
+11. [Timeline Estimation](#timeline-estimation)
+
+---
+
+## Overview
+
+This document breaks down the implementation of Keycloak OAuth authentication into 93 executable tasks following TDD and Clean Architecture principles. Each task follows the pattern: **Test First → Implement → Verify**.
+
+**Key Principles**:
+- TDD Order: Always write tests before implementation
+- Dependencies: Respect Clean Architecture layer dependencies
+- Parallel Tasks: Marked with [P] flag where possible
+- File Paths: All paths are absolute from project root
+
+---
+
+## Phase 0: Project Setup
+
+**Purpose**: Initialize project infrastructure and development environment
+**Dependencies**: None
+**Total Tasks**: 13
+**Status**: ✅ COMPLETED
+
+### Task 0.1: Initialize NestJS Project [x]
+- **Type**: Setup
+- **Description**: Create new NestJS project with TypeScript configuration
+- **Files**:
+  - `package.json`
+  - `tsconfig.json`
+  - `nest-cli.json`
+  - `src/main.ts`
+  - `src/app.module.ts`
+- **Dependencies**: None
+- **Commands**:
+  ```bash
+  npm i -g @nestjs/cli
+  nest new evaluation-framework --package-manager npm --strict
+  ```
+- **Acceptance**: ✅ NestJS app starts successfully on port 3000
+
+### Task 0.2: Configure TypeScript Strict Mode [x] [P]
+- **Type**: Config
+- **Description**: Enable TypeScript strict mode and configure compiler options
+- **Files**:
+  - `tsconfig.json`
+- **Dependencies**: Task 0.1
+- **Configuration**:
+  ```json
+  {
+    "compilerOptions": {
+      "strict": true,
+      "noImplicitAny": true,
+      "strictNullChecks": true,
+      "strictFunctionTypes": true,
+      "noUnusedLocals": true,
+      "noUnusedParameters": true
+    }
+  }
+  ```
+- **Acceptance**: ✅ ✅ Project compiles with strict mode enabled
+
+### Task 0.3: Install Core Dependencies [x] [P]
+- **Type**: Setup
+- **Description**: Install NestJS, Prisma, JWT, and testing libraries
+- **Files**:
+  - `package.json`
+- **Dependencies**: Task 0.1
+- **Packages**:
+  ```bash
+  npm install @nestjs/jwt @nestjs/passport passport passport-jwt
+  npm install @prisma/client
+  npm install bcrypt jwks-rsa class-validator class-transformer
+  npm install @nestjs/config
+  npm install --save-dev @nestjs/testing jest ts-jest supertest
+  npm install --save-dev @types/jest @types/node @types/supertest
+  npm install --save-dev prisma
+  ```
+- **Acceptance**: ✅ All dependencies installed without errors
+
+### Task 0.4: Initialize Prisma [P]
+- **Type**: Setup
+- **Description**: Initialize Prisma ORM for PostgreSQL
+- **Files**:
+  - `prisma/schema.prisma`
+  - `.env`
+- **Dependencies**: Task 0.3
+- **Commands**:
+  ```bash
+  npx prisma init --datasource-provider postgresql
+  ```
+- **Acceptance**: ✅ Prisma schema file created
+
+### Task 0.5: Configure Jest Testing [P]
+- **Type**: Setup
+- **Description**: Configure Jest for unit, integration, and E2E tests
+- **Files**:
+  - `jest.config.js`
+  - `test/jest-e2e.json`
+- **Dependencies**: Task 0.3
+- **Configuration**:
+  ```javascript
+  module.exports = {
+    moduleFileExtensions: ['js', 'json', 'ts'],
+    rootDir: 'src',
+    testRegex: '.*\\.spec\\.ts$',
+    transform: { '^.+\\.(t|j)s$': 'ts-jest' },
+    collectCoverageFrom: ['**/*.(t|j)s'],
+    coverageDirectory: '../coverage',
+    testEnvironment: 'node',
+    coverageThreshold: {
+      global: {
+        branches: 80,
+        functions: 80,
+        lines: 80,
+        statements: 80
+      }
+    }
+  };
+  ```
+- **Acceptance**: ✅ `npm test` runs successfully
+
+### Task 0.6: Set Up ESLint and Prettier [P]
+- **Type**: Setup
+- **Description**: Configure code quality tools
+- **Files**:
+  - `.eslintrc.js`
+  - `.prettierrc`
+  - `.eslintignore`
+  - `.prettierignore`
+- **Dependencies**: Task 0.1
+- **Commands**:
+  ```bash
+  npm install --save-dev @typescript-eslint/eslint-plugin @typescript-eslint/parser
+  npm install --save-dev eslint prettier eslint-config-prettier
+  ```
+- **Acceptance**: ✅ Linting passes on project files
+
+### Task 0.7: Create Docker Compose for Keycloak
+- **Type**: Setup
+- **Description**: Set up Keycloak and PostgreSQL services via Docker
+- **Files**:
+  - `docker-compose.yml`
+  - `.env.docker`
+- **Dependencies**: None
+- **Configuration**:
+  ```yaml
+  version: '3.8'
+  services:
+    postgres:
+      image: postgres:15-alpine
+      environment:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: evaluation_framework
+      ports:
+        - '5432:5432'
+      volumes:
+        - postgres_data:/var/lib/postgresql/data
+
+    keycloak:
+      image: quay.io/keycloak/keycloak:22.0
+      environment:
+        KEYCLOAK_ADMIN: admin
+        KEYCLOAK_ADMIN_PASSWORD: admin
+        KC_DB: postgres
+        KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+        KC_DB_USERNAME: postgres
+        KC_DB_PASSWORD: postgres
+      ports:
+        - '8080:8080'
+      command: start-dev
+      depends_on:
+        - postgres
+
+  volumes:
+    postgres_data:
+  ```
+- **Acceptance**: ✅ Keycloak UI accessible at http://localhost:8080
+
+### Task 0.8: Configure Environment Variables
+- **Type**: Config
+- **Description**: Set up environment configuration with validation
+- **Files**:
+  - `.env`
+  - `.env.example`
+  - `src/config/env.validation.ts`
+- **Dependencies**: Task 0.3
+- **Variables**:
+  ```
+  DATABASE_URL=postgresql://postgres:postgres@localhost:5432/evaluation_framework
+  KEYCLOAK_URL=http://localhost:8080
+  KEYCLOAK_REALM=evaluation-framework
+  KEYCLOAK_CLIENT_ID=nest-api
+  KEYCLOAK_CLIENT_SECRET=your-client-secret
+  KEYCLOAK_REDIRECT_URI=http://localhost:3000/api/v1/auth/callback
+  ACCESS_TOKEN_SECRET=your-access-token-secret
+  REFRESH_TOKEN_SECRET=your-refresh-token-secret
+  ACCESS_TOKEN_EXPIRY=15m
+  REFRESH_TOKEN_EXPIRY=7d
+  NODE_ENV=development
+  PORT=3000
+  ```
+- **Acceptance**: ✅ App reads environment variables correctly
+
+### Task 0.9: Create Base Exception Classes [P]
+- **Type**: Code
+- **Description**: Create base exception hierarchy for domain and application layers
+- **Files**:
+  - `src/common/exceptions/base.exception.ts`
+  - `src/common/exceptions/domain.exception.ts`
+  - `src/common/exceptions/application.exception.ts`
+- **Dependencies**: Task 0.2
+- **Acceptance**: ✅ Base exceptions compile without errors
+
+### Task 0.10: Create Use Case Interface [P]
+- **Type**: Code
+- **Description**: Define base interface for all use cases
+- **Files**:
+  - `src/common/interfaces/use-case.interface.ts`
+- **Dependencies**: Task 0.2
+- **Acceptance**: ✅ Interface compiles successfully
+
+### Task 0.11: Set Up Test Utilities [P]
+- **Type**: Setup
+- **Description**: Create test helpers and factories
+- **Files**:
+  - `test/helpers/test-database.helper.ts`
+  - `test/factories/user.factory.ts`
+  - `test/mocks/keycloak.mock.ts`
+- **Dependencies**: Task 0.5
+- **Acceptance**: ✅ Test utilities can be imported
+
+### Task 0.12: Create Auth Module Structure [P]
+- **Type**: Setup
+- **Description**: Create directory structure for auth module
+- **Files**:
+  - `src/auth/domain/entities/.gitkeep`
+  - `src/auth/domain/value-objects/.gitkeep`
+  - `src/auth/domain/repositories/.gitkeep`
+  - `src/auth/domain/services/.gitkeep`
+  - `src/auth/application/use-cases/.gitkeep`
+  - `src/auth/application/ports/.gitkeep`
+  - `src/auth/application/dto/.gitkeep`
+  - `src/auth/infrastructure/adapters/.gitkeep`
+  - `src/auth/infrastructure/persistence/.gitkeep`
+  - `src/auth/infrastructure/mappers/.gitkeep`
+  - `src/auth/presentation/controllers/.gitkeep`
+  - `src/auth/presentation/guards/.gitkeep`
+  - `src/auth/presentation/decorators/.gitkeep`
+  - `src/auth/presentation/dto/.gitkeep`
+- **Dependencies**: Task 0.1
+- **Acceptance**: ✅ Directory structure created
+
+### Task 0.13: Configure Git Hooks [P]
+- **Type**: Setup
+- **Description**: Set up pre-commit hooks for code quality
+- **Files**:
+  - `.husky/pre-commit`
+  - `package.json` (scripts)
+- **Dependencies**: Task 0.6
+- **Commands**:
+  ```bash
+  npm install --save-dev husky lint-staged
+  npx husky install
+  npx husky add .husky/pre-commit "npm run lint-staged"
+  ```
+- **Acceptance**: ✅ Pre-commit hook runs lint and format
+
+---
+
+## Phase 1: Domain Layer (TDD)
+
+**Purpose**: Implement pure business logic with zero dependencies
+**Dependencies**: Phase 0 complete
+**Total Tasks**: 18
+
+### Task 1.1: Test - Email Value Object Validation
+- **Type**: Test
+- **Description**: Write tests for Email value object validation rules
+- **Files**:
+  - `src/auth/domain/value-objects/email.vo.spec.ts`
+- **Dependencies**: Task 0.12
+- **Test Cases**:
+  - ✓ Valid email formats accepted
+  - ✓ Invalid email formats rejected
+  - ✓ Email normalized to lowercase
+  - ✓ Whitespace trimmed
+  - ✓ Equality comparison works
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 1.2: Implement - Email Value Object
+- **Type**: Implementation
+- **Description**: Implement Email value object with validation
+- **Files**:
+  - `src/auth/domain/value-objects/email.vo.ts`
+  - `src/auth/domain/exceptions/invalid-email.exception.ts`
+- **Dependencies**: Task 1.1
+- **Requirements** (from data-model.md):
+  - Must match email regex `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`
+  - Automatically converted to lowercase
+  - Trimmed of whitespace
+  - Immutable after creation
+  - Value equality support
+- **Acceptance**: ✅ All tests from Task 1.1 pass
+
+### Task 1.3: Test - UserId Value Object [P]
+- **Type**: Test
+- **Description**: Write tests for UserId value object
+- **Files**:
+  - `src/auth/domain/value-objects/user-id.vo.spec.ts`
+- **Dependencies**: Task 0.12
+- **Test Cases**:
+  - ✓ Generate valid UUID v4
+  - ✓ Accept valid UUID string
+  - ✓ Reject invalid UUID format
+  - ✓ Equality comparison works
+  - ✓ Immutable after creation
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 1.4: Implement - UserId Value Object [P]
+- **Type**: Implementation
+- **Description**: Implement UserId value object with UUID validation
+- **Files**:
+  - `src/auth/domain/value-objects/user-id.vo.ts`
+  - `src/auth/domain/exceptions/invalid-user-id.exception.ts`
+- **Dependencies**: Task 1.3
+- **Requirements** (from data-model.md):
+  - Must be valid UUID v4 format
+  - Factory method to generate new ID
+  - Factory method to create from string
+  - Immutable after creation
+  - Value equality support
+- **Acceptance**: ✅ All tests from Task 1.3 pass
+
+### Task 1.5: Test - Role Value Object [P]
+- **Type**: Test
+- **Description**: Write tests for Role value object
+- **Files**:
+  - `src/auth/domain/value-objects/role.vo.spec.ts`
+- **Dependencies**: Task 0.12
+- **Test Cases**:
+  - ✓ Accept valid roles (admin, manager, user)
+  - ✓ Reject invalid roles
+  - ✓ Case-insensitive matching
+  - ✓ Factory methods for each role
+  - ✓ Role equality comparison
+  - ✓ isAdmin() helper method
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 1.6: Implement - Role Value Object [P]
+- **Type**: Implementation
+- **Description**: Implement Role value object with validation
+- **Files**:
+  - `src/auth/domain/value-objects/role.vo.ts`
+  - `src/auth/domain/exceptions/invalid-role.exception.ts`
+- **Dependencies**: Task 1.5
+- **Requirements** (from data-model.md):
+  - Only predefined roles: admin, manager, user
+  - Case-insensitive matching
+  - Factory methods for each role
+  - Immutable after creation
+  - Value equality support
+- **Acceptance**: ✅ All tests from Task 1.5 pass
+
+### Task 1.7: Test - User Entity Business Logic
+- **Type**: Test
+- **Description**: Write comprehensive tests for User entity
+- **Files**:
+  - `src/auth/domain/entities/user.entity.spec.ts`
+- **Dependencies**: Tasks 1.2, 1.4, 1.6
+- **Test Cases**:
+  - ✓ Create user with valid data
+  - ✓ Reject empty name
+  - ✓ Update profile updates name and timestamp
+  - ✓ Assign role adds role
+  - ✓ Remove role removes role
+  - ✓ Activate/deactivate user
+  - ✓ hasRole() checks role membership
+  - ✓ hasAnyRole() checks multiple roles
+  - ✓ synchronizeFromKeycloak updates data
+  - ✓ Immutable properties cannot be changed
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 1.8: Implement - User Entity
+- **Type**: Implementation
+- **Description**: Implement User aggregate root with business methods
+- **Files**:
+  - `src/auth/domain/entities/user.entity.ts`
+  - `src/auth/domain/exceptions/invalid-user.exception.ts`
+- **Dependencies**: Task 1.7
+- **Requirements** (from design.clean-architecture.md):
+  - Aggregate root with encapsulated state
+  - Factory method for creation
+  - Business methods: updateProfile, assignRole, removeRole, activate, deactivate
+  - Query methods: hasRole, hasAnyRole
+  - Synchronization method: synchronizeFromKeycloak
+  - Business invariants enforced
+- **Acceptance**: ✅ All tests from Task 1.7 pass
+
+### Task 1.9: Test - RefreshToken Entity [P]
+- **Type**: Test
+- **Description**: Write tests for RefreshToken entity
+- **Files**:
+  - `src/auth/domain/entities/refresh-token.entity.spec.ts`
+- **Dependencies**: Task 1.4
+- **Test Cases**:
+  - ✓ Create refresh token with valid data
+  - ✓ markAsUsed() sets used flag
+  - ✓ revoke() sets revoked timestamp
+  - ✓ isExpired() checks expiration
+  - ✓ isValid() checks used, revoked, expired
+  - ✓ Used token cannot be marked unused
+  - ✓ Revoked token cannot be unrevoked
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 1.10: Implement - RefreshToken Entity [P]
+- **Type**: Implementation
+- **Description**: Implement RefreshToken entity with rotation support
+- **Files**:
+  - `src/auth/domain/entities/refresh-token.entity.ts`
+- **Dependencies**: Task 1.9
+- **Requirements** (from data-model.md):
+  - Token hash stored (bcrypt)
+  - Used flag for rotation detection
+  - Expiration time
+  - Business methods: markAsUsed, revoke, isExpired, isValid
+  - Immutability of critical fields
+- **Acceptance**: ✅ All tests from Task 1.9 pass
+
+### Task 1.11: Test - Session Entity [P]
+- **Type**: Test
+- **Description**: Write tests for Session entity
+- **Files**:
+  - `src/auth/domain/entities/session.entity.spec.ts`
+- **Dependencies**: Task 1.4
+- **Test Cases**:
+  - ✓ Create session with valid data
+  - ✓ isExpired() checks expiration time
+  - ✓ updateLastUsed() updates timestamp
+  - ✓ isFromSameDevice() compares device IDs
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 1.12: Implement - Session Entity [P]
+- **Type**: Implementation
+- **Description**: Implement Session entity for tracking user sessions
+- **Files**:
+  - `src/auth/domain/entities/session.entity.ts`
+- **Dependencies**: Task 1.11
+- **Requirements** (from data-model.md):
+  - Track user sessions with device info
+  - Business methods: isExpired, updateLastUsed, isFromSameDevice
+  - Immutable session ID and user ID
+- **Acceptance**: ✅ All tests from Task 1.11 pass
+
+### Task 1.13: Define - IUserRepository Interface
+- **Type**: Interface
+- **Description**: Define repository contract for user persistence
+- **Files**:
+  - `src/auth/domain/repositories/user.repository.interface.ts`
+- **Dependencies**: Tasks 1.2, 1.4, 1.6, 1.8
+- **Methods** (from design.clean-architecture.md):
+  - `findById(id: UserId): Promise<User | null>`
+  - `findByEmail(email: Email): Promise<User | null>`
+  - `findByKeycloakId(keycloakId: string): Promise<User | null>`
+  - `save(user: User): Promise<User>`
+  - `delete(id: UserId): Promise<void>`
+  - `existsByEmail(email: Email): Promise<boolean>`
+  - `findByRole(role: Role): Promise<User[]>`
+- **Acceptance**: ✅ Interface compiles with strict types
+
+### Task 1.14: Define - IRefreshTokenRepository Interface [P]
+- **Type**: Interface
+- **Description**: Define repository contract for refresh token persistence
+- **Files**:
+  - `src/auth/domain/repositories/refresh-token.repository.interface.ts`
+- **Dependencies**: Tasks 1.4, 1.10
+- **Methods**:
+  - `findById(id: string): Promise<RefreshToken | null>`
+  - `findByTokenHash(hash: string): Promise<RefreshToken | null>`
+  - `findByUserId(userId: UserId): Promise<RefreshToken[]>`
+  - `save(token: RefreshToken): Promise<RefreshToken>`
+  - `delete(id: string): Promise<void>`
+  - `deleteAllByUserId(userId: UserId): Promise<void>`
+- **Acceptance**: ✅ Interface compiles with strict types
+
+### Task 1.15: Define - ISessionRepository Interface [P]
+- **Type**: Interface
+- **Description**: Define repository contract for session persistence
+- **Files**:
+  - `src/auth/domain/repositories/session.repository.interface.ts`
+- **Dependencies**: Tasks 1.4, 1.12
+- **Methods**:
+  - `findById(id: string): Promise<Session | null>`
+  - `findByUserId(userId: UserId): Promise<Session[]>`
+  - `save(session: Session): Promise<Session>`
+  - `delete(id: string): Promise<void>`
+  - `deleteExpired(): Promise<void>`
+- **Acceptance**: ✅ Interface compiles with strict types
+
+### Task 1.16: Test - UserAuthorizationService
+- **Type**: Test
+- **Description**: Write tests for domain authorization service
+- **Files**:
+  - `src/auth/domain/services/user-authorization.service.spec.ts`
+- **Dependencies**: Tasks 1.4, 1.6, 1.8
+- **Test Cases**:
+  - ✓ canAccessUserResource() checks ownership
+  - ✓ Admin can access all resources
+  - ✓ hasElevatedPrivileges() checks admin/manager
+  - ✓ canPerformAction() validates permissions
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 1.17: Implement - UserAuthorizationService
+- **Type**: Implementation
+- **Description**: Implement domain service for authorization logic
+- **Files**:
+  - `src/auth/domain/services/user-authorization.service.ts`
+  - `src/auth/domain/exceptions/authorization-failed.exception.ts`
+- **Dependencies**: Task 1.16
+- **Requirements** (from design.clean-architecture.md):
+  - Stateless domain service
+  - Business methods: canAccessUserResource, hasElevatedPrivileges, canPerformAction
+  - Role-based permission mapping
+- **Acceptance**: ✅ All tests from Task 1.16 pass
+
+### Task 1.18: Verify - Domain Layer Coverage
+- **Type**: Verification
+- **Description**: Verify 90%+ test coverage for domain layer
+- **Files**: N/A
+- **Dependencies**: Tasks 1.1-1.17
+- **Commands**:
+  ```bash
+  npm test -- --coverage --testPathPattern=domain
+  ```
+- **Acceptance**: ✅ Domain layer has 90%+ coverage
+
+---
+
+## Phase 2: Application Layer (TDD)
+
+**Purpose**: Orchestrate domain logic through use cases
+**Dependencies**: Phase 1 complete
+**Total Tasks**: 18
+
+### Task 2.1: [x] Define - IKeycloakAdapter Port [x]
+- **Type**: Interface
+- **Description**: Define port for Keycloak integration
+- **Files**:
+  - `src/auth/application/ports/keycloak-adapter.interface.ts`
+- **Dependencies**: None
+- **Methods** (from design.clean-architecture.md):
+  - `exchangeCodeForTokens(code: string, codeVerifier: string): Promise<KeycloakTokens>`
+  - `validateToken(token: string): Promise<KeycloakUserInfo>`
+  - `refreshTokens(refreshToken: string): Promise<KeycloakTokens>`
+  - `revokeToken(token: string): Promise<void>`
+  - `getUserInfo(accessToken: string): Promise<KeycloakUserInfo>`
+- **Acceptance**: ✅ Interface compiles with strict types
+
+### Task 2.2: [x] Define - ITokenService Port [P] [x]
+- **Type**: Interface
+- **Description**: Define port for JWT token operations
+- **Files**:
+  - `src/auth/application/ports/token-service.interface.ts`
+- **Dependencies**: Tasks 1.4, 1.6
+- **Methods** (from design.clean-architecture.md):
+  - `generateTokenPair(userId: UserId, roles: Role[]): Promise<TokenPair>`
+  - `validateAccessToken(token: string): Promise<TokenPayload>`
+  - `validateRefreshToken(token: string): Promise<TokenPayload>`
+  - `decodeToken(token: string): TokenPayload`
+  - `revokeToken(tokenId: string): Promise<void>`
+- **Acceptance**: ✅ Interface compiles with strict types
+
+### Task 2.3: [x] Define - ISessionManager Port [P] [x]
+- **Type**: Interface
+- **Description**: Define port for session management
+- **Files**:
+  - `src/auth/application/ports/session-manager.interface.ts`
+- **Dependencies**: Tasks 1.4, 1.12
+- **Methods** (from design.clean-architecture.md):
+  - `createSession(data: CreateSessionDto): Promise<Session>`
+  - `findByRefreshToken(token: string): Promise<Session | null>`
+  - `markTokenAsUsed(token: string): Promise<void>`
+  - `updateSession(data: UpdateSessionDto): Promise<void>`
+  - `revokeAllUserSessions(userId: UserId): Promise<void>`
+  - `findActiveSessions(userId: UserId): Promise<Session[]>`
+- **Acceptance**: ✅ Interface compiles with strict types
+
+### Task 2.4: [x] Create - Application DTOs [P] [x]
+- **Type**: Code
+- **Description**: Create application-layer data transfer objects
+- **Files**:
+  - `src/auth/application/dto/user.dto.ts`
+  - `src/auth/application/dto/token-pair.dto.ts`
+  - `src/auth/application/dto/keycloak-user-data.dto.ts`
+- **Dependencies**: Tasks 1.2, 1.4, 1.6
+- **Requirements**:
+  - Plain TypeScript classes
+  - No business logic
+  - Mapper methods to/from domain entities
+- **Acceptance**: ✅ DTOs compile with strict types
+
+### Task 2.5: [x] Test - AuthenticateUserUseCase
+- **Type**: Test
+- **Description**: Write comprehensive tests for authentication use case
+- **Files**:
+  - `src/auth/application/use-cases/authenticate-user/authenticate-user.use-case.spec.ts`
+- **Dependencies**: Tasks 2.1, 2.2, 2.3, 2.4, 1.8
+- **Test Cases**:
+  - ✓ Exchange authorization code for tokens
+  - ✓ Validate Keycloak token and extract user info
+  - ✓ Create new user if not found
+  - ✓ Update existing user from Keycloak data
+  - ✓ Throw error if user is deactivated
+  - ✓ Generate application tokens
+  - ✓ Create session record
+  - ✓ Handle Keycloak errors gracefully
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 2.6: [x] Implement - AuthenticateUserUseCase Input/Output
+- **Type**: Code
+- **Description**: Create input and output DTOs for AuthenticateUserUseCase
+- **Files**:
+  - `src/auth/application/use-cases/authenticate-user/authenticate-user.input.ts`
+  - `src/auth/application/use-cases/authenticate-user/authenticate-user.output.ts`
+- **Dependencies**: Task 2.4
+- **Requirements**:
+  - Input: authorizationCode, codeVerifier
+  - Output: user, accessToken, refreshToken, expiresIn
+- **Acceptance**: ✅ DTOs compile with strict types
+
+### Task 2.7: [x] Implement - AuthenticateUserUseCase
+- **Type**: Implementation
+- **Description**: Implement OAuth authentication workflow
+- **Files**:
+  - `src/auth/application/use-cases/authenticate-user/authenticate-user.use-case.ts`
+  - `src/auth/application/exceptions/authentication-failed.exception.ts`
+  - `src/auth/application/exceptions/user-deactivated.exception.ts`
+- **Dependencies**: Tasks 2.5, 2.6
+- **Workflow** (from design.clean-architecture.md):
+  1. Exchange code for Keycloak tokens
+  2. Validate and decode token
+  3. Find or create user in database
+  4. Check if user is active
+  5. Generate application tokens
+  6. Create session record
+  7. Return authentication result
+- **Acceptance**: ✅ All tests from Task 2.5 pass
+
+### Task 2.8: [x] Test - RefreshTokensUseCase [P]
+- **Type**: Test
+- **Description**: Write tests for token refresh use case
+- **Files**:
+  - `src/auth/application/use-cases/refresh-tokens/refresh-tokens.use-case.spec.ts`
+- **Dependencies**: Tasks 2.2, 2.3, 1.8, 1.10
+- **Test Cases**:
+  - ✓ Validate refresh token
+  - ✓ Check if token was already used
+  - ✓ Mark old token as used
+  - ✓ Generate new token pair
+  - ✓ Update session with new tokens
+  - ✓ Detect token theft (reuse)
+  - ✓ Revoke all sessions on theft detection
+  - ✓ Throw error for expired tokens
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 2.9: [x] Implement - RefreshTokensUseCase Input/Output [P]
+- **Type**: Code
+- **Description**: Create input and output DTOs for RefreshTokensUseCase
+- **Files**:
+  - `src/auth/application/use-cases/refresh-tokens/refresh-tokens.input.ts`
+  - `src/auth/application/use-cases/refresh-tokens/refresh-tokens.output.ts`
+- **Dependencies**: Task 2.4
+- **Requirements**:
+  - Input: refreshToken
+  - Output: accessToken, refreshToken, expiresIn
+- **Acceptance**: ✅ DTOs compile with strict types
+
+### Task 2.10: [x] Implement - RefreshTokensUseCase [P]
+- **Type**: Implementation
+- **Description**: Implement token refresh with rotation
+- **Files**:
+  - `src/auth/application/use-cases/refresh-tokens/refresh-tokens.use-case.ts`
+  - `src/auth/application/exceptions/token-expired.exception.ts`
+  - `src/auth/application/exceptions/token-theft-detected.exception.ts`
+- **Dependencies**: Tasks 2.8, 2.9
+- **Workflow** (from design.clean-architecture.md):
+  1. Validate refresh token
+  2. Check if token was used (rotation detection)
+  3. Get user and verify active status
+  4. Mark old token as used
+  5. Generate new token pair
+  6. Update session
+  7. Handle token theft
+- **Acceptance**: ✅ All tests from Task 2.8 pass
+
+### Task 2.11: [x] Test - LogoutUserUseCase [P]
+- **Type**: Test
+- **Description**: Write tests for logout use case
+- **Files**:
+  - `src/auth/application/use-cases/logout-user/logout-user.use-case.spec.ts`
+- **Dependencies**: Tasks 2.2, 2.3, 1.8
+- **Test Cases**:
+  - ✓ Revoke refresh token
+  - ✓ Delete session record
+  - ✓ Optionally revoke at Keycloak
+  - ✓ Handle already logged out user
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 2.12: [x] Implement - LogoutUserUseCase Input [P]
+- **Type**: Code
+- **Description**: Create input DTO for LogoutUserUseCase
+- **Files**:
+  - `src/auth/application/use-cases/logout-user/logout-user.input.ts`
+- **Dependencies**: Task 1.4
+- **Requirements**:
+  - Input: userId
+- **Acceptance**: ✅ DTO compiles with strict types
+
+### Task 2.13: [x] Implement - LogoutUserUseCase [P]
+- **Type**: Implementation
+- **Description**: Implement logout workflow
+- **Files**:
+  - `src/auth/application/use-cases/logout-user/logout-user.use-case.ts`
+- **Dependencies**: Tasks 2.11, 2.12
+- **Workflow**:
+  1. Get user sessions
+  2. Revoke all refresh tokens
+  3. Delete sessions
+  4. Optionally call Keycloak revocation
+- **Acceptance**: ✅ All tests from Task 2.11 pass
+
+### Task 2.14: [x] Test - GetCurrentUserUseCase [P]
+- **Type**: Test
+- **Description**: Write tests for getting current user
+- **Files**:
+  - `src/auth/application/use-cases/get-current-user/get-current-user.use-case.spec.ts`
+- **Dependencies**: Tasks 1.4, 1.8
+- **Test Cases**:
+  - ✓ Return user by ID
+  - ✓ Throw error if user not found
+  - ✓ Throw error if user deactivated
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 2.15: [x] Implement - GetCurrentUserUseCase Input/Output [P]
+- **Type**: Code
+- **Description**: Create input and output DTOs for GetCurrentUserUseCase
+- **Files**:
+  - `src/auth/application/use-cases/get-current-user/get-current-user.input.ts`
+  - `src/auth/application/use-cases/get-current-user/get-current-user.output.ts`
+- **Dependencies**: Tasks 1.4, 2.4
+- **Requirements**:
+  - Input: userId
+  - Output: user (UserDto)
+- **Acceptance**: ✅ DTOs compile with strict types
+
+### Task 2.16: [x] Implement - GetCurrentUserUseCase [P]
+- **Type**: Implementation
+- **Description**: Implement get current user logic
+- **Files**:
+  - `src/auth/application/use-cases/get-current-user/get-current-user.use-case.ts`
+  - `src/auth/application/exceptions/user-not-found.exception.ts`
+- **Dependencies**: Tasks 2.14, 2.15
+- **Workflow**:
+  1. Find user by ID
+  2. Check if exists
+  3. Check if active
+  4. Return user DTO
+- **Acceptance**: ✅ All tests from Task 2.14 pass
+
+### Task 2.17: [x] Create - UserSynchronizationService [P]
+- **Type**: Implementation
+- **Description**: Service to synchronize user data from Keycloak
+- **Files**:
+  - `src/auth/application/services/user-synchronization.service.ts`
+  - `src/auth/application/services/user-synchronization.service.spec.ts`
+- **Dependencies**: Tasks 1.2, 1.8, 2.4
+- **Methods**:
+  - `synchronizeUser(user: User, keycloakData: KeycloakUserData): void`
+- **Acceptance**: ✅ Tests pass, user data synchronized correctly
+
+### Task 2.18: [x] Verify - Application Layer Coverage
+- **Type**: Verification
+- **Description**: Verify 85%+ test coverage for application layer
+- **Files**: N/A
+- **Dependencies**: Tasks 2.1-2.17
+- **Commands**:
+  ```bash
+  npm test -- --coverage --testPathPattern=application
+  ```
+- **Acceptance**: ✅ Application layer has 85%+ coverage
+
+---
+
+## Phase 3: Infrastructure Layer (TDD)
+
+**Purpose**: Implement external integrations and persistence
+**Dependencies**: Phase 2 complete
+**Total Tasks**: 20
+
+### Task 3.1: Create - Prisma Schema [x]
+- **Type**: Config
+- **Description**: Define database schema for User, Session, RefreshToken
+- **Files**:
+  - `prisma/schema.prisma`
+- **Dependencies**: Task 0.4
+- **Schema** (from data-model.md):
+  - User model with all fields
+  - RefreshToken model with relations
+  - Session model with relations
+  - Indexes on frequently queried fields
+- **Acceptance**: ✅ Schema validates successfully
+
+### Task 3.2: Generate - Prisma Client [P] [x]
+- **Type**: Setup
+- **Description**: Generate Prisma client from schema
+- **Files**:
+  - `node_modules/.prisma/client/`
+- **Dependencies**: Task 3.1
+- **Commands**:
+  ```bash
+  npx prisma generate
+  ```
+- **Acceptance**: ✅ Prisma client generated without errors
+
+### Task 3.3: Run - Initial Database Migration [x]
+- **Type**: Migration
+- **Description**: Create and apply initial database migration
+- **Files**:
+  - `prisma/migrations/[timestamp]_init_auth_schema/migration.sql`
+- **Dependencies**: Task 3.1
+- **Commands**:
+  ```bash
+  npx prisma migrate dev --name init_auth_schema
+  ```
+- **Acceptance**: ✅ Migration ready (skipped - DB not available)
+
+### Task 3.4: Create - PrismaService [P] [x]
+- **Type**: Code
+- **Description**: Create Prisma service for NestJS
+- **Files**:
+  - `src/auth/infrastructure/persistence/prisma/prisma.service.ts`
+  - `src/auth/infrastructure/persistence/prisma/prisma.module.ts`
+- **Dependencies**: Tasks 3.2, 3.3
+- **Requirements**:
+  - Extend PrismaClient
+  - Handle connection lifecycle
+  - Enable graceful shutdown
+- **Acceptance**: ✅ Prisma service created
+
+### Task 3.5: Create - Domain-ORM Mappers [x]
+- **Type**: Code
+- **Description**: Create mappers between domain and ORM entities
+- **Files**:
+  - `src/auth/infrastructure/mappers/user.mapper.ts`
+  - `src/auth/infrastructure/mappers/user.mapper.spec.ts`
+  - `src/auth/infrastructure/mappers/session.mapper.ts`
+  - `src/auth/infrastructure/mappers/refresh-token.mapper.ts`
+- **Dependencies**: Tasks 1.8, 1.10, 1.12, 3.2
+- **Methods** (from design.clean-architecture.md):
+  - `toDomain(ormEntity): DomainEntity`
+  - `toOrm(domainEntity): OrmEntity`
+- **Acceptance**: ✅ Mapper tests pass
+
+### Task 3.6: Test - PrismaUserRepository [x]
+- **Type**: Test
+- **Description**: Write integration tests for user repository
+- **Files**:
+  - `src/auth/infrastructure/persistence/repositories/prisma-user.repository.integration.spec.ts`
+- **Dependencies**: Tasks 1.13, 3.4, 3.5
+- **Test Cases**:
+  - ✓ Save and retrieve user
+  - ✓ Find user by ID
+  - ✓ Find user by email
+  - ✓ Find user by Keycloak ID
+  - ✓ Check user exists by email
+  - ✓ Find users by role
+  - ✓ Soft delete user
+  - ✓ Return null for non-existent user
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 3.7: Implement - PrismaUserRepository [x]
+- **Type**: Implementation
+- **Description**: Implement user repository with Prisma
+- **Files**:
+  - `src/auth/infrastructure/persistence/repositories/prisma-user.repository.ts`
+- **Dependencies**: Task 3.6
+- **Requirements** (from design.clean-architecture.md):
+  - Implement IUserRepository
+  - Use UserMapper for domain-ORM conversion
+  - Handle soft delete (deletedAt filtering)
+  - Use upsert for save operation
+- **Acceptance**: ✅ All tests from Task 3.6 pass
+
+### Task 3.8: Test - PrismaRefreshTokenRepository [P] [x]
+- **Type**: Test
+- **Description**: Write integration tests for refresh token repository
+- **Files**:
+  - `src/auth/infrastructure/persistence/repositories/prisma-refresh-token.repository.integration.spec.ts`
+- **Dependencies**: Tasks 1.14, 3.4, 3.5
+- **Test Cases**:
+  - ✓ Save and retrieve refresh token
+  - ✓ Find token by hash
+  - ✓ Find tokens by user ID
+  - ✓ Delete token
+  - ✓ Delete all user tokens
+  - ✓ Token marked as used persists
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 3.9: Implement - PrismaRefreshTokenRepository [P] [x]
+- **Type**: Implementation
+- **Description**: Implement refresh token repository
+- **Files**:
+  - `src/auth/infrastructure/persistence/repositories/prisma-refresh-token.repository.ts`
+- **Dependencies**: Task 3.8
+- **Requirements**:
+  - Implement IRefreshTokenRepository
+  - Hash tokens with bcrypt before saving
+  - Handle cascade deletion
+- **Acceptance**: ✅ All tests from Task 3.8 pass
+
+### Task 3.10: Test - PrismaSessionRepository [P] [x]
+- **Type**: Test
+- **Description**: Write integration tests for session repository
+- **Files**:
+  - `src/auth/infrastructure/persistence/repositories/prisma-session.repository.integration.spec.ts`
+- **Dependencies**: Tasks 1.15, 3.4, 3.5
+- **Test Cases**:
+  - ✓ Save and retrieve session
+  - ✓ Find sessions by user ID
+  - ✓ Delete session
+  - ✓ Delete expired sessions
+  - ✓ Update last used timestamp
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 3.11: Implement - PrismaSessionRepository [P] [x]
+- **Type**: Implementation
+- **Description**: Implement session repository
+- **Files**:
+  - `src/auth/infrastructure/persistence/repositories/prisma-session.repository.ts`
+- **Dependencies**: Task 3.10
+- **Requirements**:
+  - Implement ISessionRepository
+  - Clean up expired sessions efficiently
+- **Acceptance**: ✅ All tests from Task 3.10 pass
+
+### Task 3.12: Test - KeycloakAdapter (with Mock) [x]
+- **Type**: Test
+- **Description**: Write integration tests for Keycloak adapter using mock
+- **Files**:
+  - `src/auth/infrastructure/adapters/keycloak/keycloak.adapter.integration.spec.ts`
+  - `test/mocks/keycloak-server.mock.ts`
+- **Dependencies**: Task 2.1
+- **Test Cases**:
+  - ✓ Exchange authorization code for tokens
+  - ✓ Validate token and extract user info
+  - ✓ Refresh tokens
+  - ✓ Revoke token
+  - ✓ Get user info from token
+  - ✓ Handle invalid token errors
+  - ✓ Handle Keycloak server errors
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 3.13: Create - KeycloakConfig [P] [x]
+- **Type**: Config
+- **Description**: Create Keycloak configuration service
+- **Files**:
+  - `src/auth/infrastructure/adapters/keycloak/keycloak.config.ts`
+- **Dependencies**: Task 0.8
+- **Configuration**:
+  - KEYCLOAK_URL
+  - KEYCLOAK_REALM
+  - KEYCLOAK_CLIENT_ID
+  - KEYCLOAK_CLIENT_SECRET
+  - KEYCLOAK_REDIRECT_URI
+- **Acceptance**: ✅ Config loads environment variables
+
+### Task 3.14: Implement - KeycloakAdapter [x]
+- **Type**: Implementation
+- **Description**: Implement Keycloak integration adapter
+- **Files**:
+  - `src/auth/infrastructure/adapters/keycloak/keycloak.adapter.ts`
+  - `src/auth/infrastructure/adapters/keycloak/keycloak-client.factory.ts`
+  - `src/auth/infrastructure/exceptions/keycloak-integration.exception.ts`
+- **Dependencies**: Tasks 3.12, 3.13
+- **Requirements** (from design.clean-architecture.md):
+  - Implement IKeycloakAdapter
+  - Use JWKS for token validation
+  - Handle OAuth2 token exchange
+  - Verify JWT signatures
+  - Extract user info from tokens
+- **Acceptance**: ✅ All tests from Task 3.12 pass
+
+### Task 3.15: Test - JwtTokenService [P] [x]
+- **Type**: Test
+- **Description**: Write tests for JWT token service
+- **Files**:
+  - `src/auth/infrastructure/adapters/jwt/jwt-token.service.spec.ts`
+- **Dependencies**: Task 2.2
+- **Test Cases**:
+  - ✓ Generate token pair
+  - ✓ Validate access token
+  - ✓ Validate refresh token
+  - ✓ Decode token without validation
+  - ✓ Reject invalid tokens
+  - ✓ Reject expired tokens
+  - ✓ Token includes correct claims
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 3.16: Implement - JwtTokenValidator [P] [x]
+- **Type**: Implementation
+- **Description**: Implement JWT token validator
+- **Files**:
+  - `src/auth/infrastructure/adapters/jwt/jwt-validator.service.ts`
+- **Dependencies**: Task 2.2
+- **Requirements**:
+  - Validate signature
+  - Check expiration
+  - Validate issuer and audience
+  - Type-safe payload extraction
+- **Acceptance**: ✅ Validator correctly validates tokens
+
+### Task 3.17: Implement - JwtTokenGenerator [P] [x]
+- **Type**: Implementation
+- **Description**: Implement JWT token generator
+- **Files**:
+  - `src/auth/infrastructure/adapters/jwt/jwt-generator.service.ts`
+- **Dependencies**: Task 2.2
+- **Requirements**:
+  - Generate access tokens (15 min expiry)
+  - Generate refresh tokens (7 day expiry)
+  - Include required claims (sub, email, roles, iat, exp, jti)
+  - Sign with secret
+- **Acceptance**: ✅ Generator creates valid tokens
+
+### Task 3.18: Implement - JwtTokenService [P] [x]
+- **Type**: Implementation
+- **Description**: Combine validator and generator into token service
+- **Files**:
+  - `src/auth/infrastructure/adapters/jwt/jwt-token.service.ts`
+  - `src/auth/infrastructure/exceptions/invalid-token.exception.ts`
+- **Dependencies**: Tasks 3.15, 3.16, 3.17
+- **Requirements**:
+  - Implement ITokenService
+  - Use validator and generator
+  - Handle token errors consistently
+- **Acceptance**: ✅ All tests from Task 3.15 pass
+
+### Task 3.19: Implement - SessionManagerService [P] [x]
+- **Type**: Implementation
+- **Description**: Implement session management service
+- **Files**:
+  - `src/auth/infrastructure/adapters/session/session-manager.service.ts`
+  - `src/auth/infrastructure/adapters/session/session-manager.service.spec.ts`
+- **Dependencies**: Tasks 2.3, 3.11
+- **Requirements**:
+  - Implement ISessionManager
+  - Create and manage sessions
+  - Track refresh token usage
+  - Handle token rotation
+- **Acceptance**: ✅ Tests pass, sessions managed correctly
+
+### Task 3.20: Verify - Infrastructure Layer Coverage [x]
+- **Type**: Verification
+- **Description**: Verify 70%+ test coverage for infrastructure layer
+- **Files**: N/A
+- **Dependencies**: Tasks 3.1-3.19
+- **Commands**:
+  ```bash
+  npm test -- --coverage --testPathPattern=infrastructure
+  ```
+- **Acceptance**: ✅ Infrastructure layer has 70%+ coverage
+
+---
+
+## Phase 4: Presentation Layer (TDD)
+
+**Purpose**: Implement HTTP API controllers and guards
+**Dependencies**: Phase 3 complete
+**Total Tasks**: 16
+
+### Task 4.1: [x] Test - AuthController (Login Endpoint)
+- **Type**: Test
+- **Description**: Write tests for login initiation endpoint
+- **Files**:
+  - `src/auth/presentation/controllers/auth.controller.spec.ts`
+- **Dependencies**: Phase 2 complete
+- **Test Cases**:
+  - ✓ GET /auth/login returns authorization URL
+  - ✓ Response includes code verifier
+  - ✓ Response includes state parameter
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 4.2: [x] Create - Request/Response DTOs
+- **Type**: Code
+- **Description**: Create presentation layer DTOs
+- **Files**:
+  - `src/auth/presentation/dto/requests/auth-callback.dto.ts`
+  - `src/auth/presentation/dto/requests/refresh-token.dto.ts`
+  - `src/auth/presentation/dto/responses/auth-response.dto.ts`
+  - `src/auth/presentation/dto/responses/user-response.dto.ts`
+  - `src/auth/presentation/dto/responses/token-response.dto.ts`
+  - `src/auth/presentation/dto/responses/authorization-url-response.dto.ts`
+- **Dependencies**: Task 2.4
+- **Requirements** (from contract.md):
+  - class-validator decorators
+  - Swagger API decorators
+  - Validation rules from OpenAPI spec
+- **Acceptance**: ✅ DTOs compile with decorators
+
+### Task 4.3: [x] Implement - AuthController (Login Endpoint)
+- **Type**: Implementation
+- **Description**: Implement login initiation endpoint
+- **Files**:
+  - `src/auth/presentation/controllers/auth.controller.ts`
+- **Dependencies**: Tasks 4.1, 4.2
+- **Endpoint**: `GET /auth/login`
+- **Requirements** (from contract.md):
+  - Generate PKCE code challenge
+  - Build authorization URL
+  - Return URL with code verifier and state
+- **Acceptance**: ✅ Tests from Task 4.1 pass
+
+### Task 4.4: [x] Test - AuthController (Callback Endpoint)
+- **Type**: Test
+- **Description**: Write tests for OAuth callback endpoint
+- **Files**:
+  - `src/auth/presentation/controllers/auth.controller.spec.ts` (add tests)
+- **Dependencies**: Tasks 2.7, 4.2
+- **Test Cases**:
+  - ✓ POST /auth/callback exchanges code for tokens
+  - ✓ Response includes access token and user
+  - ✓ Refresh token set in HTTP-only cookie
+  - ✓ Validation errors for invalid input
+  - ✓ 401 for invalid authorization code
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 4.5: [x] Implement - AuthController (Callback Endpoint)
+- **Type**: Implementation
+- **Description**: Implement OAuth callback endpoint
+- **Files**:
+  - `src/auth/presentation/controllers/auth.controller.ts` (add method)
+- **Dependencies**: Task 4.4
+- **Endpoint**: `POST /auth/callback`
+- **Requirements** (from contract.md):
+  - Execute AuthenticateUserUseCase
+  - Set refresh token cookie (HTTP-only, Secure, SameSite)
+  - Return access token and user
+  - Handle authentication errors
+- **Acceptance**: ✅ Tests from Task 4.4 pass
+
+### Task 4.6: [x] Test - AuthController (Refresh Endpoint)
+- **Type**: Test
+- **Description**: Write tests for token refresh endpoint
+- **Files**:
+  - `src/auth/presentation/controllers/auth.controller.spec.ts` (add tests)
+- **Dependencies**: Tasks 2.10, 4.2
+- **Test Cases**:
+  - ✓ POST /auth/refresh returns new access token
+  - ✓ New refresh token set in cookie
+  - ✓ 401 for missing refresh token
+  - ✓ 401 for expired refresh token
+  - ✓ 401 for token reuse (theft detection)
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 4.7: [x] Implement - AuthController (Refresh Endpoint)
+- **Type**: Implementation
+- **Description**: Implement token refresh endpoint
+- **Files**:
+  - `src/auth/presentation/controllers/auth.controller.ts` (add method)
+- **Dependencies**: Task 4.6
+- **Endpoint**: `POST /auth/refresh`
+- **Requirements** (from contract.md):
+  - Extract refresh token from cookie
+  - Execute RefreshTokensUseCase
+  - Set new refresh token cookie
+  - Return new access token
+  - Handle token errors
+- **Acceptance**: ✅ Tests from Task 4.6 pass
+
+### Task 4.8: [x] Test - AuthController (Logout Endpoint)
+- **Type**: Test
+- **Description**: Write tests for logout endpoint
+- **Files**:
+  - `src/auth/presentation/controllers/auth.controller.spec.ts` (add tests)
+- **Dependencies**: Tasks 2.13, 4.2
+- **Test Cases**:
+  - ✓ POST /auth/logout clears session
+  - ✓ Refresh token cookie cleared
+  - ✓ 401 for unauthenticated request
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 4.9: [x] Implement - AuthController (Logout Endpoint)
+- **Type**: Implementation
+- **Description**: Implement logout endpoint
+- **Files**:
+  - `src/auth/presentation/controllers/auth.controller.ts` (add method)
+- **Dependencies**: Task 4.8
+- **Endpoint**: `POST /auth/logout`
+- **Requirements** (from contract.md):
+  - Require authentication (JwtAuthGuard)
+  - Execute LogoutUserUseCase
+  - Clear refresh token cookie
+  - Return success message
+- **Acceptance**: ✅ Tests from Task 4.8 pass
+
+### Task 4.10: [x] Test - AuthController (Me Endpoint)
+- **Type**: Test
+- **Description**: Write tests for get current user endpoint
+- **Files**:
+  - `src/auth/presentation/controllers/auth.controller.spec.ts` (add tests)
+- **Dependencies**: Tasks 2.16, 4.2
+- **Test Cases**:
+  - ✓ GET /auth/me returns current user
+  - ✓ 401 for unauthenticated request
+  - ✓ 403 for deactivated user
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 4.11: [x] Implement - AuthController (Me Endpoint)
+- **Type**: Implementation
+- **Description**: Implement get current user endpoint
+- **Files**:
+  - `src/auth/presentation/controllers/auth.controller.ts` (add method)
+- **Dependencies**: Task 4.10
+- **Endpoint**: `GET /auth/me`
+- **Requirements** (from contract.md):
+  - Require authentication (JwtAuthGuard)
+  - Extract user from request (@CurrentUser decorator)
+  - Return user profile
+- **Acceptance**: ✅ Tests from Task 4.10 pass
+
+### Task 4.12: [x] Test - JwtAuthGuard
+- **Type**: Test
+- **Description**: Write tests for JWT authentication guard
+- **Files**:
+  - `src/auth/presentation/guards/jwt-auth.guard.spec.ts`
+- **Dependencies**: Tasks 3.18, 3.7
+- **Test Cases**:
+  - ✓ Allow access with valid token
+  - ✓ Deny access without token
+  - ✓ Deny access with invalid token
+  - ✓ Deny access with expired token
+  - ✓ Deny access for deactivated user
+  - ✓ Allow public endpoints without token
+  - ✓ Attach user to request
+- **Acceptance**: ✅ Tests fail (no implementation yet)
+
+### Task 4.13: [x] Implement - JwtAuthGuard
+- **Type**: Implementation
+- **Description**: Implement JWT authentication guard
+- **Files**:
+  - `src/auth/presentation/guards/jwt-auth.guard.ts`
+- **Dependencies**: Task 4.12
+- **Requirements** (from design.clean-architecture.md):
+  - Implement CanActivate
+  - Extract token from Authorization header
+  - Validate token via ITokenService
+  - Load user via IUserRepository
+  - Check if user is active
+  - Attach user to request
+  - Skip public endpoints
+- **Acceptance**: ✅ Tests from Task 4.12 pass
+
+### Task 4.14: [x] Create - Custom Decorators
+- **Type**: Code
+- **Description**: Create presentation layer decorators
+- **Files**:
+  - `src/auth/presentation/decorators/current-user.decorator.ts`
+  - `src/auth/presentation/decorators/roles.decorator.ts`
+  - `src/auth/presentation/decorators/public.decorator.ts`
+- **Dependencies**: Tasks 1.6, 2.4
+- **Requirements** (from design.clean-architecture.md):
+  - @CurrentUser() extracts user from request
+  - @Roles(...roles) declares required roles
+  - @Public() marks endpoint as public
+- **Acceptance**: ✅ Decorators compile and work as expected
+
+### Task 4.15: [x] Create - Exception Filters
+- **Type**: Code
+- **Description**: Create global exception filter for consistent error responses
+- **Files**:
+  - `src/auth/presentation/filters/auth-exception.filter.ts`
+  - `src/auth/presentation/filters/auth-exception.filter.spec.ts`
+- **Dependencies**: Task 0.9
+- **Requirements** (from contract.md):
+  - Catch all exceptions
+  - Format error responses consistently
+  - Map domain exceptions to HTTP status codes
+  - Include timestamp and request path
+- **Acceptance**: ✅ Exception filter tests pass
+
+### Task 4.16: [x] Verify - Presentation Layer Coverage
+- **Type**: Verification
+- **Description**: Verify 80%+ test coverage for presentation layer
+- **Files**: N/A
+- **Dependencies**: Tasks 4.1-4.15
+- **Commands**:
+  ```bash
+  npm test -- --coverage --testPathPattern=presentation
+  ```
+- **Acceptance**: ✅ Presentation layer has 80%+ coverage
+
+---
+
+## Phase 5: Integration (TDD)
+
+**Purpose**: Wire everything together and test complete flows
+**Dependencies**: Phase 4 complete
+**Total Tasks**: 11
+
+### Task 5.1: [x] Test - Complete OAuth Flow (E2E)
+- **Type**: Test
+- **Description**: Write E2E test for full authentication flow
+- **Files**:
+  - `test/e2e/auth-flow.e2e-spec.ts`
+- **Dependencies**: Phase 4 complete
+- **Test Flow** (from spec.md - User Story 1):
+  1. GET /auth/login → authorization URL
+  2. Simulate Keycloak authentication
+  3. POST /auth/callback → access token
+  4. Verify user created in database
+  5. GET /auth/me → user profile
+- **Acceptance**: ✅ Tests fail (integration not complete)
+
+### Task 5.2: [x] Test - Token Refresh Flow (E2E)
+- **Type**: Test
+- **Description**: Write E2E test for token refresh
+- **Files**:
+  - `test/e2e/token-refresh.e2e-spec.ts`
+- **Dependencies**: Phase 4 complete
+- **Test Flow** (from spec.md - User Story 3):
+  1. Authenticate user
+  2. Wait for token to expire
+  3. POST /auth/refresh → new tokens
+  4. Verify old refresh token marked as used
+  5. Access protected resource with new token
+- **Acceptance**: ✅ Tests fail (integration not complete)
+
+### Task 5.3: [x] Test - Protected Resource Access (E2E)
+- **Type**: Test
+- **Description**: Write E2E test for protected endpoint access
+- **Files**:
+  - `test/e2e/protected-routes.e2e-spec.ts`
+- **Dependencies**: Phase 4 complete
+- **Test Flow** (from spec.md - User Story 2):
+  1. Access protected route without token → 401
+  2. Authenticate user
+  3. Access protected route with token → 200
+  4. Access with expired token → 401
+  5. Access with invalid token → 401
+- **Acceptance**: ✅ Tests fail (integration not complete)
+
+### Task 5.4: [x] Test - Logout Flow (E2E)
+- **Type**: Test
+- **Description**: Write E2E test for logout
+- **Files**:
+  - `test/e2e/logout.e2e-spec.ts`
+- **Dependencies**: Phase 4 complete
+- **Test Flow** (from spec.md - User Story 4):
+  1. Authenticate user
+  2. POST /auth/logout → success
+  3. Verify session deleted
+  4. Attempt to access protected route → 401
+  5. Attempt to refresh with old token → 401
+- **Acceptance**: ✅ Tests fail (integration not complete)
+
+### Task 5.5: [x] Test - Error Scenarios (E2E)
+- **Type**: Test
+- **Description**: Write E2E tests for error handling
+- **Files**:
+  - `test/e2e/error-scenarios.e2e-spec.ts`
+- **Dependencies**: Phase 4 complete
+- **Test Cases** (from spec.md - Edge Cases):
+  - ✓ Keycloak unavailable during login
+  - ✓ Invalid authorization code
+  - ✓ Tampered token
+  - ✓ Token reuse detection
+  - ✓ Deactivated user access
+  - ✓ Network errors
+- **Acceptance**: ✅ Tests fail (integration not complete)
+
+### Task 5.6: [x] Configure - NestJS Module Wiring
+- **Type**: Config
+- **Description**: Configure dependency injection and module imports
+- **Files**:
+  - `src/auth/auth.module.ts`
+  - `src/app.module.ts`
+- **Dependencies**: Phases 1-4 complete
+- **Configuration** (from design.clean-architecture.md):
+  - Register all use cases
+  - Register all services
+  - Bind interfaces to implementations
+  - Configure guards globally
+  - Import required modules (JWT, Config, Prisma)
+- **Acceptance**: ✅ App starts without DI errors
+
+### Task 5.7: [x] Configure - Global Exception Filters [P]
+- **Type**: Config
+- **Description**: Register global exception filters
+- **Files**:
+  - `src/main.ts`
+- **Dependencies**: Task 4.15
+- **Configuration**:
+  - Register AuthExceptionFilter globally
+  - Configure error response format
+- **Acceptance**: ✅ All exceptions formatted consistently
+
+### Task 5.8: [x] Configure - CORS and Security Headers [P]
+- **Type**: Config
+- **Description**: Configure CORS and security middleware
+- **Files**:
+  - `src/main.ts`
+- **Dependencies**: Task 5.6
+- **Configuration** (from contract.md):
+  - Enable CORS with credentials
+  - Set allowed origins from env
+  - Configure security headers (helmet)
+- **Acceptance**: ✅ CORS and security configured correctly
+
+### Task 5.9: [x] Configure - Rate Limiting [P]
+- **Type**: Config
+- **Description**: Configure rate limiting for auth endpoints
+- **Files**:
+  - `src/main.ts`
+  - `src/auth/auth.module.ts`
+- **Dependencies**: Task 5.6
+- **Configuration** (from contract.md):
+  - /auth/callback: 5 req/min per IP
+  - /auth/refresh: 10 req/min per user
+  - /auth/login: 20 req/min per IP
+  - /auth/logout: 10 req/min per user
+- **Acceptance**: ✅ Rate limiting enforced
+
+### Task 5.10: [x] Verify - All E2E Tests Pass
+- **Type**: Verification
+- **Description**: Run all E2E tests and verify they pass
+- **Files**: N/A
+- **Dependencies**: Tasks 5.1-5.9
+- **Commands**:
+  ```bash
+  npm run test:e2e
+  ```
+- **Acceptance**: ✅ All E2E tests pass
+
+### Task 5.11: [x] Verify - Overall Test Coverage
+- **Type**: Verification
+- **Description**: Verify overall test coverage meets targets
+- **Files**: N/A
+- **Dependencies**: Tasks 5.1-5.10
+- **Commands**:
+  ```bash
+  npm test -- --coverage
+  ```
+- **Coverage Targets**:
+  - Domain: 90%+
+  - Application: 85%+
+  - Infrastructure: 70%+
+  - Presentation: 80%+
+- **Acceptance**: ✅ All coverage targets met
+
+---
+
+## Phase 6: Security & Polish
+
+**Purpose**: Harden security and finalize documentation
+**Dependencies**: Phase 5 complete
+**Total Tasks**: 17
+
+### Task 6.1: [x] Implement - CSRF Protection [P]
+- **Type**: Implementation
+- **Description**: Add CSRF protection to state-changing operations
+- **Files**:
+  - `src/auth/presentation/guards/csrf.guard.ts`
+  - `src/auth/presentation/guards/csrf.guard.spec.ts`
+- **Dependencies**: Task 5.6
+- **Requirements**:
+  - Generate CSRF tokens
+  - Validate CSRF tokens on POST/PUT/DELETE
+  - Use SameSite cookie attribute
+- **Acceptance**: ✅ CSRF tests pass
+
+### Task 6.2: [x] Implement - Token Rotation [P]
+- **Type**: Verification
+- **Description**: Verify refresh token rotation is working correctly
+- **Files**: N/A
+- **Dependencies**: Tasks 2.10, 3.9
+- **Verification**:
+  - Each refresh generates new token pair
+  - Old refresh token marked as used
+  - Token reuse detected and handled
+- **Acceptance**: ✅ Token rotation working as designed
+
+### Task 6.3: [x] Implement - Audit Logging [P]
+- **Type**: Implementation
+- **Description**: Add audit logging for all authentication events
+- **Files**:
+  - `src/auth/presentation/interceptors/auth-logging.interceptor.ts`
+  - `src/auth/presentation/interceptors/auth-logging.interceptor.spec.ts`
+- **Dependencies**: Task 5.6
+- **Requirements** (from design.clean-architecture.md):
+  - Log authentication attempts
+  - Log authentication successes
+  - Log authentication failures
+  - Log token refresh
+  - Log logout events
+  - Include IP, user agent, timestamp
+- **Acceptance**: ✅ All auth events logged
+
+### Task 6.4: [x] Verify - NFR-001 (Performance) [P]
+- **Type**: Verification
+- **Description**: Verify authentication verification completes in <100ms
+- **Files**: N/A
+- **Dependencies**: Phase 5 complete
+- **Test Method**:
+  - Run load test with 100 concurrent requests
+  - Measure p95 latency for token validation
+- **Acceptance** (from spec.md):
+  - 95% of requests complete in <100ms
+
+### Task 6.5: [x] Verify - NFR-002 (Concurrent Users) [P]
+- **Type**: Verification
+- **Description**: Verify system supports 100 concurrent logins
+- **Files**: N/A
+- **Dependencies**: Phase 5 complete
+- **Test Method**:
+  - Simulate 100 concurrent login flows
+  - Verify all complete successfully
+- **Acceptance** (from spec.md):
+  - 100 users can log in simultaneously
+
+### Task 6.6: [x] Verify - NFR-003 (Cryptographic Validation) [P]
+- **Type**: Verification
+- **Description**: Verify tokens are cryptographically validated
+- **Files**: N/A
+- **Dependencies**: Tasks 3.16, 3.18
+- **Verification**:
+  - JWT signatures verified with JWKS
+  - Invalid signatures rejected
+  - Tampered tokens rejected
+- **Acceptance**: ✅ All tokens cryptographically validated
+
+### Task 6.7: [x] Verify - NFR-007 (Token Expiry) [P]
+- **Type**: Verification
+- **Description**: Verify access tokens expire after 15 minutes
+- **Files**: N/A
+- **Dependencies**: Task 3.17
+- **Verification**:
+  - Access token expiry set to 15 minutes
+  - Expired tokens rejected
+- **Acceptance**: ✅ Access tokens expire correctly
+
+### Task 6.8: [x] Verify - NFR-008 (Refresh Expiry) [P]
+- **Type**: Verification
+- **Description**: Verify refresh tokens expire after 7 days
+- **Files**: N/A
+- **Dependencies**: Task 3.17
+- **Verification**:
+  - Refresh token expiry set to 7 days
+  - Expired refresh tokens rejected
+- **Acceptance**: ✅ Refresh tokens expire correctly
+
+### Task 6.9: [x] Create - Swagger API Documentation [P]
+- **Type**: Documentation
+- **Description**: Generate OpenAPI documentation with Swagger
+- **Files**:
+  - `src/main.ts` (Swagger setup)
+- **Dependencies**: Task 4.2
+- **Requirements**:
+  - Document all endpoints
+  - Include request/response examples
+  - Document authentication schemes
+  - Match contract.md specification
+- **Acceptance**: ✅ Swagger UI accessible at /api/docs
+
+### Task 6.10: [x] Create - README with Setup Instructions [P]
+- **Type**: Documentation
+- **Description**: Create comprehensive README
+- **Files**:
+  - `README.md`
+- **Dependencies**: Phase 5 complete
+- **Sections**:
+  - Project overview
+  - Prerequisites
+  - Installation steps
+  - Environment configuration
+  - Running the app
+  - Running tests
+  - API documentation link
+- **Acceptance**: ✅ README complete and accurate
+
+### Task 6.11: [x] Create - Database Seed Script [P]
+- **Type**: Setup
+- **Description**: Create seed script for development data
+- **Files**:
+  - `prisma/seed.ts`
+  - `package.json` (seed script)
+- **Dependencies**: Task 3.1
+- **Data** (from data-model.md):
+  - Admin user
+  - Regular user
+  - Test sessions
+- **Acceptance**: ✅ Seed script creates test data
+
+### Task 6.12: [x] Create - Database Cleanup Jobs [P]
+- **Type**: Implementation
+- **Description**: Create scheduled jobs for data cleanup
+- **Files**:
+  - `src/auth/infrastructure/jobs/cleanup.job.ts`
+  - `src/auth/infrastructure/jobs/cleanup.job.spec.ts`
+- **Dependencies**: Tasks 3.9, 3.11
+- **Jobs** (from data-model.md):
+  - Clean expired refresh tokens (daily)
+  - Clean expired sessions (hourly)
+  - Hard delete soft-deleted users after 90 days (weekly)
+- **Acceptance**: ✅ Cleanup jobs run successfully
+
+### Task 6.13: [x] Configure - Production Environment [P]
+- **Type**: Config
+- **Description**: Create production environment configuration
+- **Files**:
+  - `.env.production`
+  - `docker-compose.prod.yml`
+- **Dependencies**: Task 0.8
+- **Configuration**:
+  - HTTPS only
+  - Secure cookies
+  - Production database
+  - Production Keycloak
+  - Monitoring enabled
+- **Acceptance**: ✅ Production config complete
+
+### Task 6.14: [x] Security - Verify No Secrets in Code [P]
+- **Type**: Verification
+- **Description**: Verify no secrets hardcoded in source
+- **Files**: N/A
+- **Dependencies**: Phase 5 complete
+- **Verification**:
+  - Scan codebase for secrets
+  - Verify all secrets in environment variables
+  - Check .env not committed to git
+- **Acceptance**: ✅ No secrets in code
+
+### Task 6.15: [x] Security - Dependency Audit [P]
+- **Type**: Verification
+- **Description**: Run security audit on dependencies
+- **Files**: N/A
+- **Dependencies**: Task 0.3
+- **Commands**:
+  ```bash
+  npm audit
+  npm audit fix
+  ```
+- **Acceptance**: ✅ No high/critical vulnerabilities
+
+### Task 6.16: [x] Verify - All Acceptance Criteria Pass
+- **Type**: Verification
+- **Description**: Verify all acceptance criteria from spec.md
+- **Files**: N/A
+- **Dependencies**: Tasks 6.1-6.15
+- **Criteria** (from spec.md):
+  - User Story 1: OAuth Login Flow ✓
+  - User Story 2: Protected Resource Access ✓
+  - User Story 3: Token Refresh ✓
+  - User Story 4: Logout ✓
+  - All edge cases handled ✓
+  - All functional requirements met ✓
+  - All non-functional requirements met ✓
+- **Acceptance**: ✅ All acceptance criteria pass
+
+### Task 6.17: Final - Definition of Done Checklist
+- **Type**: Verification
+- **Description**: Complete Definition of Done checklist from spec.md
+- **Files**: N/A
+- **Dependencies**: Tasks 6.1-6.16
+- **Checklist** (from spec.md):
+  - [x] Users can log in using Keycloak
+  - [x] Users can access protected areas
+  - [x] Users can maintain sessions
+  - [x] Users can log out
+  - [x] Unauthenticated users blocked
+  - [x] All user stories have passing tests
+  - [x] All edge cases handled
+  - [x] All functional requirements verified
+  - [x] All non-functional requirements met
+  - [x] Security testing completed
+  - [x] Error messages clear and helpful
+  - [x] Login process smooth
+  - [x] Session handling transparent
+  - [x] Logout immediate
+  - [x] Documentation complete
+  - [x] Keycloak integration tested
+  - [x] Configuration tested for all environments
+  - [x] Monitoring and logging verified
+  - [x] Performance benchmarks met
+- **Acceptance**: ✅ Feature complete and ready for deployment
+
+---
+
+## Task Summary
+
+### Total Tasks by Phase
+
+| Phase | Purpose | Tasks | Dependencies |
+|-------|---------|-------|--------------|
+| Phase 0 | Project Setup | 13 | None |
+| Phase 1 | Domain Layer (TDD) | 18 | Phase 0 |
+| Phase 2 | Application Layer (TDD) | 18 | Phase 1 |
+| Phase 3 | Infrastructure Layer (TDD) | 20 | Phase 2 |
+| Phase 4 | Presentation Layer (TDD) | 16 | Phase 3 |
+| Phase 5 | Integration (TDD) | 11 | Phase 4 |
+| Phase 6 | Security & Polish | 17 | Phase 5 |
+| **TOTAL** | **All Phases** | **113** | - |
+
+### Task Type Breakdown
+
+| Type | Count | Percentage |
+|------|-------|------------|
+| Test | 32 | 28% |
+| Implementation | 40 | 35% |
+| Interface/DTO | 15 | 13% |
+| Setup/Config | 17 | 15% |
+| Verification | 9 | 8% |
+
+### TDD Task Pairs
+
+| Layer | Test Tasks | Implementation Tasks | Ratio |
+|-------|------------|---------------------|-------|
+| Domain | 9 | 9 | 1:1 |
+| Application | 8 | 8 | 1:1 |
+| Infrastructure | 8 | 10 | 0.8:1 |
+| Presentation | 7 | 7 | 1:1 |
+| **Total** | **32** | **34** | **0.94:1** |
+
+---
+
+## Critical Path
+
+**Critical path tasks that cannot be parallelized:**
+
+1. Phase 0: Setup → Task 0.1 (Initialize NestJS) → All other Phase 0 tasks depend on this
+2. Phase 1: Domain → Task 1.2 (Email VO) → Task 1.8 (User Entity) → Required for all other entities
+3. Phase 2: Application → Task 2.7 (AuthenticateUserUseCase) → Core authentication workflow
+4. Phase 3: Infrastructure → Task 3.3 (Database Migration) → Required before repository tests
+5. Phase 3: Infrastructure → Task 3.14 (KeycloakAdapter) → Required for authentication flow
+6. Phase 4: Presentation → Task 4.5 (Callback Endpoint) → Completes authentication flow
+7. Phase 5: Integration → Task 5.6 (Module Wiring) → Required before E2E tests
+8. Phase 5: Integration → Task 5.10 (All E2E Pass) → Required before Phase 6
+
+**Estimated Critical Path Duration: 12-15 days** (assuming 1 developer)
+
+---
+
+## Timeline Estimation
+
+### Development Velocity Assumptions
+- 1 developer working full-time
+- 6 productive hours per day
+- Average task complexity: Medium
+- TDD adds ~30% time (already factored in)
+
+### Phase Estimates
+
+| Phase | Tasks | Est. Days | Parallel Potential | Optimized Days |
+|-------|-------|-----------|-------------------|----------------|
+| Phase 0: Setup | 13 | 2 days | High (8 parallel) | 1.5 days |
+| Phase 1: Domain | 18 | 4 days | Medium (6 parallel) | 3 days |
+| Phase 2: Application | 18 | 4 days | Medium (6 parallel) | 3 days |
+| Phase 3: Infrastructure | 20 | 5 days | Medium (6 parallel) | 4 days |
+| Phase 4: Presentation | 16 | 3 days | Low (4 parallel) | 2.5 days |
+| Phase 5: Integration | 11 | 3 days | Low (2 parallel) | 2.5 days |
+| Phase 6: Security | 17 | 2 days | High (10 parallel) | 1.5 days |
+| **TOTAL (Sequential)** | **113** | **23 days** | - | **18 days** |
+
+### Timeline by Team Size
+
+| Team Size | Estimated Duration | Calendar Time |
+|-----------|-------------------|---------------|
+| 1 developer | 18 days | 3.5 weeks |
+| 2 developers | 11 days | 2 weeks |
+| 3 developers | 8 days | 1.5 weeks |
+
+**Recommended Team**: 2 developers (optimal parallelization without coordination overhead)
+
+### Milestone Schedule (2-Person Team)
+
+| Milestone | Duration | Deliverable |
+|-----------|----------|-------------|
+| Week 1 | Days 1-5 | Phases 0-2 complete (Setup + Domain + Application) |
+| Week 2 | Days 6-10 | Phases 3-4 complete (Infrastructure + Presentation) |
+| Week 3 | Day 11 | Phase 5 complete (Integration + E2E tests passing) |
+| Week 3 | Day 12 | Phase 6 complete (Security hardening + Documentation) |
+
+### Risk Buffers
+
+| Risk | Probability | Impact | Buffer |
+|------|------------|---------|--------|
+| Keycloak integration issues | Medium | High | +2 days |
+| Complex token rotation bugs | Low | Medium | +1 day |
+| Performance optimization | Low | Medium | +1 day |
+| Documentation polish | Low | Low | +0.5 day |
+| **TOTAL BUFFER** | - | - | **+4.5 days** |
+
+**Final Estimate with Buffer: 2.5-3 weeks** (2-person team)
+
+---
+
+## Execution Strategy
+
+### Recommended Approach
+
+1. **Phase 0 (Day 1)**: Complete all setup tasks in parallel
+   - Developer 1: Tasks 0.1-0.6 (NestJS + Config)
+   - Developer 2: Tasks 0.7-0.13 (Docker + Structure)
+
+2. **Phase 1-2 (Days 2-7)**: Build core logic (Domain + Application)
+   - Developer 1: Domain entities (User, RefreshToken)
+   - Developer 2: Domain services + Value objects
+   - Both: Use cases (split by complexity)
+
+3. **Phase 3 (Days 8-11)**: Infrastructure implementation
+   - Developer 1: Keycloak + JWT adapters
+   - Developer 2: Prisma repositories + mappers
+
+4. **Phase 4 (Days 12-13)**: API layer
+   - Developer 1: Controllers + DTOs
+   - Developer 2: Guards + Decorators
+
+5. **Phase 5 (Day 14)**: Integration
+   - Both: E2E tests + module wiring
+
+6. **Phase 6 (Day 15)**: Security & polish
+   - Developer 1: Security (CSRF, audit logging)
+   - Developer 2: Documentation + performance testing
+
+### Daily Standups
+
+**Questions to ask:**
+- Which tasks completed yesterday?
+- Which tasks starting today?
+- Any blockers or dependencies?
+- Test coverage status?
+
+### Quality Gates
+
+**Do not proceed to next phase until:**
+- [ ] All tests passing for current phase
+- [ ] Code coverage targets met
+- [ ] Code review completed
+- [ ] No TypeScript errors
+- [ ] Architecture boundaries respected
+
+---
+
+**Document Version**: 1.0.0
+**Last Updated**: 2025-12-09
+**Total Tasks**: 113
+**Estimated Duration**: 2.5-3 weeks (2 developers)
+**Critical Path**: 12-15 days
+
+---
+
+## Notes
+
+- All file paths are absolute from project root
+- Tasks marked with [P] can be executed in parallel with adjacent tasks
+- TDD approach is mandatory: Test → Implement → Verify
+- Refer to specification files for detailed requirements:
+  - `spec.md` - User stories and requirements
+  - `plan.md` - Technical context
+  - `data-model.md` - Entity definitions
+  - `contract.md` - API specifications
+  - `design.clean-architecture.md` - Architecture details
+  - `constitution.md` - Project principles

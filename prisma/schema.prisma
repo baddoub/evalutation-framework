@@ -1,0 +1,434 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "darwin-arm64"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// USER ENTITY
+// ============================================================================
+
+model User {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  name       String
+  keycloakId String   @unique @map("keycloak_id")
+  roles      String[] @default(["user"])
+  isActive   Boolean  @default(true) @map("is_active")
+
+  // Performance review fields
+  level      String?  // Junior, Mid, Senior, Lead, Manager
+  department String?
+  jobTitle   String?  @map("job_title")
+  managerId  String?  @map("manager_id")
+
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  // Relations
+  refreshTokens RefreshToken[]
+  sessions      Session[]
+
+  // Manager hierarchy
+  manager User?  @relation("ManagerReports", fields: [managerId], references: [id])
+  reports User[] @relation("ManagerReports")
+
+  // Performance review relations
+  selfReviews                      SelfReview[]
+  peerNominationsGiven             PeerNomination[]        @relation("NominatorNominations")
+  peerNominationsReceived          PeerNomination[]        @relation("NomineeNominations")
+  peerFeedbackGiven                PeerFeedback[]          @relation("ReviewerFeedback")
+  peerFeedbackReceived             PeerFeedback[]          @relation("RevieweeFeedback")
+  managerEvaluations               ManagerEvaluation[]     @relation("ManagerEvaluations")
+  employeeEvaluations              ManagerEvaluation[]     @relation("EmployeeEvaluations")
+  calibrationSessionsFacilitated   CalibrationSession[]    @relation("FacilitatorSessions")
+  calibrationSessionsParticipated  CalibrationSession[]    @relation("ParticipantSessions")
+  calibrationAdjustmentsMade       CalibrationAdjustment[] @relation("AdjusterAdjustments")
+  scoreAdjustmentRequests          ScoreAdjustmentRequest[] @relation("RequesterAdjustments")
+  scoreAdjustmentApprovals         ScoreAdjustmentRequest[] @relation("ApproverAdjustments")
+  finalScores                      FinalScore[]
+  feedbackDeliveries               FinalScore[]            @relation("FeedbackDeliveries")
+
+  @@map("users")
+  @@index([email])
+  @@index([keycloakId])
+  @@index([deletedAt])
+  @@index([managerId])
+  @@index([department])
+  @@index([level])
+}
+
+// ============================================================================
+// REFRESH TOKEN ENTITY
+// ============================================================================
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  tokenHash String   @unique @map("token_hash")  // bcrypt hashed token
+  used      Boolean  @default(false)
+  expiresAt DateTime @map("expires_at")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([tokenHash])
+}
+
+// ============================================================================
+// SESSION ENTITY
+// ============================================================================
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  deviceId  String?  @map("device_id")
+  userAgent String?  @map("user_agent") @db.Text
+  ipAddress String?  @map("ip_address")
+  expiresAt DateTime @map("expires_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  lastUsed  DateTime @default(now()) @map("last_used")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([deviceId])
+}
+
+// ============================================================================
+// PERFORMANCE REVIEW ENTITIES
+// ============================================================================
+
+model ReviewCycle {
+  id     String @id @default(uuid())
+  name   String // e.g., "2025 Annual Review"
+  year   Int    // 2025
+  status String // DRAFT, ACTIVE, CALIBRATION, COMPLETED
+
+  // Phase deadlines
+  selfReviewDeadline       DateTime @map("self_review_deadline")
+  peerFeedbackDeadline     DateTime @map("peer_feedback_deadline")
+  managerEvalDeadline      DateTime @map("manager_eval_deadline")
+  calibrationDeadline      DateTime @map("calibration_deadline")
+  feedbackDeliveryDeadline DateTime @map("feedback_delivery_deadline")
+
+  startDate DateTime  @map("start_date")
+  endDate   DateTime? @map("end_date")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  selfReviews         SelfReview[]
+  peerNominations     PeerNomination[]
+  peerFeedback        PeerFeedback[]
+  managerEvaluations  ManagerEvaluation[]
+  calibrationSessions CalibrationSession[]
+  finalScores         FinalScore[]
+
+  @@unique([year, name])
+  @@map("review_cycles")
+  @@index([status])
+  @@index([year])
+}
+
+model SelfReview {
+  id     String @id @default(uuid())
+  cycleId String @map("cycle_id")
+  userId  String @map("user_id")
+
+  // Pillar scores (0-4)
+  projectImpactScore         Int @map("project_impact_score")
+  directionScore             Int @map("direction_score")
+  engineeringExcellenceScore Int @map("engineering_excellence_score")
+  operationalOwnershipScore  Int @map("operational_ownership_score")
+  peopleImpactScore          Int @map("people_impact_score")
+
+  // Narrative (max 1000 words)
+  narrative String @db.Text
+
+  status String // DRAFT, SUBMITTED
+
+  submittedAt DateTime? @map("submitted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  // Relations
+  cycle ReviewCycle @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([cycleId, userId])
+  @@map("self_reviews")
+  @@index([userId])
+  @@index([status])
+}
+
+model PeerNomination {
+  id          String @id @default(uuid())
+  cycleId     String @map("cycle_id")
+  nominatorId String @map("nominator_id") // Employee being reviewed
+  nomineeId   String @map("nominee_id")   // Peer nominated to provide feedback
+
+  status        String  // PENDING, ACCEPTED, DECLINED, OVERRIDDEN_BY_MANAGER
+  declineReason String? @map("decline_reason") @db.Text
+
+  nominatedAt DateTime  @default(now()) @map("nominated_at")
+  respondedAt DateTime? @map("responded_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  cycle     ReviewCycle @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  nominator User        @relation("NominatorNominations", fields: [nominatorId], references: [id])
+  nominee   User        @relation("NomineeNominations", fields: [nomineeId], references: [id])
+
+  @@unique([cycleId, nominatorId, nomineeId])
+  @@map("peer_nominations")
+  @@index([nominatorId])
+  @@index([nomineeId])
+  @@index([status])
+}
+
+model PeerFeedback {
+  id         String @id @default(uuid())
+  cycleId    String @map("cycle_id")
+  revieweeId String @map("reviewee_id") // Employee being reviewed
+  reviewerId String @map("reviewer_id") // Peer providing feedback
+
+  // Pillar scores (0-4)
+  projectImpactScore         Int @map("project_impact_score")
+  directionScore             Int @map("direction_score")
+  engineeringExcellenceScore Int @map("engineering_excellence_score")
+  operationalOwnershipScore  Int @map("operational_ownership_score")
+  peopleImpactScore          Int @map("people_impact_score")
+
+  // Comments (anonymized to reviewee)
+  strengths       String? @db.Text
+  growthAreas     String? @map("growth_areas") @db.Text
+  generalComments String? @map("general_comments") @db.Text
+
+  submittedAt DateTime  @map("submitted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  // Relations
+  cycle    ReviewCycle @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  reviewee User        @relation("RevieweeFeedback", fields: [revieweeId], references: [id])
+  reviewer User        @relation("ReviewerFeedback", fields: [reviewerId], references: [id])
+
+  @@unique([cycleId, revieweeId, reviewerId])
+  @@map("peer_feedback")
+  @@index([revieweeId])
+  @@index([reviewerId])
+}
+
+model ManagerEvaluation {
+  id         String @id @default(uuid())
+  cycleId    String @map("cycle_id")
+  employeeId String @map("employee_id") // Employee being evaluated
+  managerId  String @map("manager_id")  // Manager providing evaluation
+
+  // Final pillar scores (0-4) after reviewing self + peer feedback
+  projectImpactScore         Int @map("project_impact_score")
+  directionScore             Int @map("direction_score")
+  engineeringExcellenceScore Int @map("engineering_excellence_score")
+  operationalOwnershipScore  Int @map("operational_ownership_score")
+  peopleImpactScore          Int @map("people_impact_score")
+
+  // Manager's assessment
+  narrative       String @db.Text
+  strengths       String @db.Text
+  growthAreas     String @map("growth_areas") @db.Text
+  developmentPlan String @map("development_plan") @db.Text
+
+  status String // DRAFT, SUBMITTED, CALIBRATED
+
+  submittedAt  DateTime? @map("submitted_at")
+  calibratedAt DateTime? @map("calibrated_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  // Relations
+  cycle    ReviewCycle             @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  employee User                    @relation("EmployeeEvaluations", fields: [employeeId], references: [id])
+  manager  User                    @relation("ManagerEvaluations", fields: [managerId], references: [id])
+  calibrationAdjustments CalibrationAdjustment[]
+
+  @@unique([cycleId, employeeId])
+  @@map("manager_evaluations")
+  @@index([employeeId])
+  @@index([managerId])
+  @@index([status])
+}
+
+model CalibrationSession {
+  id            String @id @default(uuid())
+  cycleId       String @map("cycle_id")
+  name          String // e.g., "Engineering Org Calibration"
+  department    String? // Optional: calibrate by department
+  facilitatorId String  @map("facilitator_id")
+
+  scheduledAt DateTime  @map("scheduled_at")
+  completedAt DateTime? @map("completed_at")
+  status      String    // SCHEDULED, IN_PROGRESS, COMPLETED
+
+  // Participants (manager IDs)
+  participantIds String[] @map("participant_ids")
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  cycle        ReviewCycle             @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  facilitator  User                    @relation("FacilitatorSessions", fields: [facilitatorId], references: [id])
+  participants User[]                  @relation("ParticipantSessions")
+  adjustments  CalibrationAdjustment[]
+
+  @@map("calibration_sessions")
+  @@index([cycleId])
+  @@index([department])
+  @@index([status])
+}
+
+model CalibrationAdjustment {
+  id           String @id @default(uuid())
+  sessionId    String @map("session_id")
+  evaluationId String @map("evaluation_id") // ManagerEvaluation being adjusted
+  adjustedBy   String @map("adjusted_by")   // User who made the adjustment
+
+  // Original scores
+  originalProjectImpact         Int @map("original_project_impact")
+  originalDirection             Int @map("original_direction")
+  originalEngineeringExcellence Int @map("original_engineering_excellence")
+  originalOperationalOwnership  Int @map("original_operational_ownership")
+  originalPeopleImpact          Int @map("original_people_impact")
+
+  // Adjusted scores
+  adjustedProjectImpact         Int @map("adjusted_project_impact")
+  adjustedDirection             Int @map("adjusted_direction")
+  adjustedEngineeringExcellence Int @map("adjusted_engineering_excellence")
+  adjustedOperationalOwnership  Int @map("adjusted_operational_ownership")
+  adjustedPeopleImpact          Int @map("adjusted_people_impact")
+
+  justification String @db.Text
+
+  adjustedAt DateTime @default(now()) @map("adjusted_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  session    CalibrationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  evaluation ManagerEvaluation  @relation(fields: [evaluationId], references: [id])
+  adjuster   User               @relation("AdjusterAdjustments", fields: [adjustedBy], references: [id])
+
+  @@map("calibration_adjustments")
+  @@index([sessionId])
+  @@index([evaluationId])
+}
+
+model ScoreAdjustmentRequest {
+  id          String  @id @default(uuid())
+  cycleId     String  @map("cycle_id")
+  employeeId  String  @map("employee_id")
+  requesterId String  @map("requester_id") // Manager requesting change
+  approverId  String? @map("approver_id")  // HR admin who approved/rejected
+
+  reason String @db.Text
+  status String // PENDING, APPROVED, REJECTED
+
+  // Proposed new scores
+  proposedProjectImpact         Int @map("proposed_project_impact")
+  proposedDirection             Int @map("proposed_direction")
+  proposedEngineeringExcellence Int @map("proposed_engineering_excellence")
+  proposedOperationalOwnership  Int @map("proposed_operational_ownership")
+  proposedPeopleImpact          Int @map("proposed_people_impact")
+
+  requestedAt     DateTime  @default(now()) @map("requested_at")
+  reviewedAt      DateTime? @map("reviewed_at")
+  rejectionReason String?   @map("rejection_reason") @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  requester User  @relation("RequesterAdjustments", fields: [requesterId], references: [id])
+  approver  User? @relation("ApproverAdjustments", fields: [approverId], references: [id])
+
+  @@map("score_adjustment_requests")
+  @@index([employeeId])
+  @@index([status])
+}
+
+model FinalScore {
+  id     String @id @default(uuid())
+  cycleId String @map("cycle_id")
+  userId  String @map("user_id")
+
+  // Pillar scores (copied from manager evaluation after calibration)
+  projectImpactScore         Int @map("project_impact_score")
+  directionScore             Int @map("direction_score")
+  engineeringExcellenceScore Int @map("engineering_excellence_score")
+  operationalOwnershipScore  Int @map("operational_ownership_score")
+  peopleImpactScore          Int @map("people_impact_score")
+
+  // Calculated scores
+  weightedScore   Float  @map("weighted_score")   // 0.00 - 4.00
+  percentageScore Float  @map("percentage_score") // 0.00 - 100.00
+  bonusTier       String @map("bonus_tier")       // EXCEEDS, MEETS, BELOW
+  finalLevel      String @map("final_level")      // Engineer level (e.g., MID, SENIOR)
+  calculatedAt    DateTime @default(now()) @map("calculated_at")
+
+  // Peer feedback aggregation (for reference)
+  peerAvgProjectImpact         Float? @map("peer_avg_project_impact")
+  peerAvgDirection             Float? @map("peer_avg_direction")
+  peerAvgEngineeringExcellence Float? @map("peer_avg_engineering_excellence")
+  peerAvgOperationalOwnership  Float? @map("peer_avg_operational_ownership")
+  peerAvgPeopleImpact          Float? @map("peer_avg_people_impact")
+  peerFeedbackCount            Int?   @map("peer_feedback_count")
+
+  locked    Boolean   @default(false)
+  lockedAt  DateTime? @map("locked_at")
+
+  feedbackDelivered   Boolean   @default(false) @map("feedback_delivered")
+  feedbackDeliveredAt DateTime? @map("feedback_delivered_at")
+  feedbackNotes       String?   @db.Text @map("feedback_notes")
+  deliveredBy         String?   @map("delivered_by")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  cycle       ReviewCycle @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id])
+  deliveredByUser User?   @relation("FeedbackDeliveries", fields: [deliveredBy], references: [id])
+
+  @@unique([cycleId, userId])
+  @@map("final_scores")
+  @@index([userId])
+  @@index([bonusTier])
+  @@index([locked])
+}

@@ -1,0 +1,8 @@
+import { ApplicationException } from '../../../common/exceptions/application.exception';
+
+export class UserDeactivatedException extends ApplicationException {
+  constructor(message: string = 'User account is deactivated') {
+    super(message, "APPLICATION_ERROR");
+    this.name = 'UserDeactivatedException';
+  }
+}

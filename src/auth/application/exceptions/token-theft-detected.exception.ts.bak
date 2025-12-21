@@ -1,0 +1,8 @@
+import { ApplicationException } from '../../../common/exceptions/application.exception';
+
+export class TokenTheftDetectedException extends ApplicationException {
+  constructor(message: string = 'Token reuse detected - all sessions revoked') {
+    super(message, "APPLICATION_ERROR");
+    this.name = 'TokenTheftDetectedException';
+  }
+}

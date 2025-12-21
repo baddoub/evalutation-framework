@@ -1,0 +1,1 @@
+{"version":3,"file":"invalid-email.exception.js","sourceRoot":"","sources":["../../../../src/auth/domain/exceptions/invalid-email.exception.ts"],"names":[],"mappings":";;;AAAA,kFAA6E;AAO7E,MAAa,qBAAsB,SAAQ,kCAAe;IACxD,YAAY,OAAe,EAAE,OAAe,eAAe;QACzD,KAAK,CAAC,OAAO,EAAE,IAAI,CAAC,CAAA;QACpB,IAAI,CAAC,IAAI,GAAG,uBAAuB,CAAA;IACrC,CAAC;CACF;AALD,sDAKC"}
