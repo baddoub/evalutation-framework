@@ -39,7 +39,9 @@ export class UpdateSelfReviewUseCase {
     // 3. Find self-review
     const review = await this.selfReviewRepository.findByUserAndCycle(input.userId, input.cycleId)
     if (!review) {
-      throw new ReviewNotFoundException('Self-review not found for this user and cycle')
+      throw new ReviewNotFoundException(
+        `Self-review not found for user ${input.userId.value} in cycle ${input.cycleId.value}`,
+      )
     }
 
     // 4. Update scores if provided
