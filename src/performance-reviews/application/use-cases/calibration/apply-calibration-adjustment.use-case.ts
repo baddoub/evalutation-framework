@@ -1,4 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common'
+import { randomUUID } from 'crypto'
 import { IManagerEvaluationRepository } from '../../../domain/repositories/manager-evaluation.repository.interface'
 import { ICalibrationSessionRepository } from '../../../domain/repositories/calibration-session.repository.interface'
 import { IFinalScoreRepository } from '../../../domain/repositories/final-score.repository.interface'
@@ -78,12 +79,13 @@ export class ApplyCalibrationAdjustmentUseCase {
       evaluation.cycleId,
     )
     if (finalScore) {
-      // Update final score with new evaluation scores
+      // Update final score with new adjusted scores
+      finalScore.updateScores(adjustedScores, newWeightedScore)
       await this.finalScoreRepository.save(finalScore)
     }
 
     // 10. Return DTO
-    const adjustmentId = require('crypto').randomUUID()
+    const adjustmentId = randomUUID()
     return {
       id: adjustmentId,
       adjustmentId,
