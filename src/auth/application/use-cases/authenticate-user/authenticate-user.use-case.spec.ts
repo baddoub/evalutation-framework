@@ -1,10 +1,11 @@
-import { Test, TestingModule } from '@nestjs/testing'
+import type { TestingModule } from '@nestjs/testing'
+import { Test } from '@nestjs/testing'
 import { AuthenticateUserUseCase } from './authenticate-user.use-case'
-import { IKeycloakAdapter } from '../../ports/keycloak-adapter.interface'
-import { ITokenService } from '../../ports/token-service.interface'
-import { ISessionManager } from '../../ports/session-manager.interface'
-import { IUserRepository } from '../../../domain/repositories/user.repository.interface'
-import { AuthenticateUserInput } from './authenticate-user.input'
+import type { IKeycloakAdapter } from '../../ports/keycloak-adapter.interface'
+import type { ITokenService } from '../../ports/token-service.interface'
+import type { ISessionManager } from '../../ports/session-manager.interface'
+import type { IUserRepository } from '../../../domain/repositories/user.repository.interface'
+import type { AuthenticateUserInput } from './authenticate-user.input'
 import { User } from '../../../domain/entities/user.entity'
 import { UserId } from '../../../domain/value-objects/user-id.vo'
 import { Email } from '../../../domain/value-objects/email.vo'
@@ -98,7 +99,8 @@ describe('AuthenticateUserUseCase', () => {
       delete: jest.fn(),
       existsByEmail: jest.fn(),
       findByRole: jest.fn(),
-      findByManagerId: jest.fn(),    }
+      findByManagerId: jest.fn(),
+    }
 
     const mockRefreshTokenRepository = {
       findById: jest.fn(),

@@ -1,4 +1,4 @@
-import { ReviewCycle as PrismaReviewCycle } from '@prisma/client'
+import type { ReviewCycle as PrismaReviewCycle } from '@prisma/client'
 import { ReviewCycle, CycleStatus } from '../../../domain/entities/review-cycle.entity'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
 import { CycleDeadlines } from '../../../domain/value-objects/cycle-deadlines.vo'
@@ -50,7 +50,9 @@ export class ReviewCycleMapper {
    * @param domain - ReviewCycle domain entity
    * @returns Prisma ReviewCycle data (without timestamps)
    */
-  static toPrisma(domain: ReviewCycle): Omit<PrismaReviewCycle, 'createdAt' | 'updatedAt' | 'deletedAt'> {
+  static toPrisma(
+    domain: ReviewCycle,
+  ): Omit<PrismaReviewCycle, 'createdAt' | 'updatedAt' | 'deletedAt'> {
     return {
       id: domain.id.value,
       name: domain.name,

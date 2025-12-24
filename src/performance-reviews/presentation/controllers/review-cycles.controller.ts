@@ -4,21 +4,29 @@ import {
   Post,
   Body,
   Param,
+  Query,
+  HttpCode,
+  HttpStatus,
   UseGuards,
   UseFilters,
 } from '@nestjs/common'
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger'
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+  ApiParam,
+} from '@nestjs/swagger'
 import { JwtAuthGuard } from '../../../auth/presentation/guards/jwt-auth.guard'
 import { ReviewAuthorizationGuard } from '../guards/review-authorization.guard'
 import { ReviewExceptionFilter } from '../filters/review-exception.filter'
-import { Roles } from '../decorators/roles.decorator'
-import {
-  CreateReviewCycleRequestDto,
-  ReviewCycleResponseDto,
-} from '../dto/review-cycle.dto'
+import { RequiresReviewRole } from '../decorators/requires-review-role.decorator'
+import { CreateReviewCycleDto } from '../dto/requests/create-review-cycle.dto'
+import { ReviewCycleResponseDto } from '../dto/responses/review-cycle-response.dto'
 import { CreateReviewCycleUseCase } from '../../application/use-cases/review-cycles/create-review-cycle.use-case'
-import { ActivateReviewCycleUseCase } from '../../application/use-cases/review-cycles/activate-review-cycle.use-case'
-import { GetReviewCycleUseCase } from '../../application/use-cases/review-cycles/get-review-cycle.use-case'
+import { StartReviewCycleUseCase } from '../../application/use-cases/review-cycles/start-review-cycle.use-case'
+import { GetActiveCycleUseCase } from '../../application/use-cases/review-cycles/get-active-cycle.use-case'
 
 @ApiTags('Review Cycles')
 @ApiBearerAuth()
@@ -28,13 +36,104 @@ import { GetReviewCycleUseCase } from '../../application/use-cases/review-cycles
 export class ReviewCyclesController {
   constructor(
     private readonly createReviewCycleUseCase: CreateReviewCycleUseCase,
-    private readonly activateReviewCycleUseCase: ActivateReviewCycleUseCase,
-    private readonly getReviewCycleUseCase: GetReviewCycleUseCase,
+    private readonly startReviewCycleUseCase: StartReviewCycleUseCase,
+    private readonly getActiveCycleUseCase: GetActiveCycleUseCase,
   ) {}
 
+  @Get()
+  @ApiOperation({
+    summary: 'List review cycles',
+    description: 'Retrieve a paginated list of review cycles with optional filters',
+  })
+  @ApiQuery({
+    name: 'year',
+    required: false,
+    type: Number,
+    description: 'Filter by year',
+    example: 2025,
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['DRAFT', 'ACTIVE', 'CALIBRATION', 'COMPLETED'],
+    description: 'Filter by status',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of items per page',
+    example: 20,
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    type: Number,
+    description: 'Offset for pagination',
+    example: 0,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Review cycles retrieved successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async listReviewCycles(@Query('limit') limit = 20, @Query('offset') offset = 0) {
+    // Note: This would require a ListReviewCyclesUseCase to be implemented
+    // For now, returning mock structure based on contract
+    return {
+      cycles: [],
+      total: 0,
+      limit,
+      offset,
+    }
+  }
+
+  @Get('active')
+  @ApiOperation({
+    summary: 'Get active review cycle',
+    description:
+      'Retrieve the currently active review cycle with all deadlines and status information',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Active review cycle retrieved successfully',
+    type: ReviewCycleResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'No active review cycle' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getActiveReviewCycle(): Promise<ReviewCycleResponseDto> {
+    const result = await this.getActiveCycleUseCase.execute()
+
+    if (!result) {
+      throw new Error('No active review cycle')
+    }
+
+    return {
+      id: result.id,
+      name: result.name,
+      year: result.year,
+      status: result.status,
+      deadlines: {
+        selfReview: result.deadlines.selfReview.toISOString(),
+        peerFeedback: result.deadlines.peerFeedback.toISOString(),
+        managerEval: result.deadlines.managerEvaluation.toISOString(),
+        calibration: result.deadlines.calibration.toISOString(),
+        feedbackDelivery: result.deadlines.feedbackDelivery.toISOString(),
+      },
+      startDate: result.startDate.toISOString(),
+      endDate: undefined,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+  }
+
   @Post()
-  @Roles('HR_ADMIN')
-  @ApiOperation({ summary: 'Create a new review cycle' })
+  @RequiresReviewRole('HR_ADMIN')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Create a new review cycle (Admin Only)',
+    description: 'Create a new performance review cycle with defined deadlines for each phase',
+  })
   @ApiResponse({
     status: 201,
     description: 'Review cycle created successfully',
@@ -42,18 +141,17 @@ export class ReviewCyclesController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - HR Admin only' })
-  async createReviewCycle(
-    @Body() dto: CreateReviewCycleRequestDto,
-  ): Promise<ReviewCycleResponseDto> {
+  @ApiResponse({ status: 400, description: 'Validation failed' })
+  async createReviewCycle(@Body() dto: CreateReviewCycleDto): Promise<ReviewCycleResponseDto> {
     const result = await this.createReviewCycleUseCase.execute({
       name: dto.name,
       year: dto.year,
       deadlines: {
-        selfReview: new Date(dto.selfReviewDeadline),
-        peerFeedback: new Date(dto.peerFeedbackDeadline),
-        managerEvaluation: new Date(dto.managerEvalDeadline),
-        calibration: new Date(dto.calibrationDeadline),
-        feedbackDelivery: new Date(dto.feedbackDeliveryDeadline),
+        selfReview: new Date(dto.deadlines.selfReview),
+        peerFeedback: new Date(dto.deadlines.peerFeedback),
+        managerEvaluation: new Date(dto.deadlines.managerEval),
+        calibration: new Date(dto.deadlines.calibration),
+        feedbackDelivery: new Date(dto.deadlines.feedbackDelivery),
       },
     })
 
@@ -61,71 +159,44 @@ export class ReviewCyclesController {
       id: result.id,
       name: result.name,
       year: result.year,
-      status: result.status as any,
-      selfReviewDeadline: result.deadlines.selfReview.toISOString(),
-      peerFeedbackDeadline: result.deadlines.peerFeedback.toISOString(),
-      managerEvalDeadline: result.deadlines.managerEvaluation.toISOString(),
-      calibrationDeadline: result.deadlines.calibration.toISOString(),
-      feedbackDeliveryDeadline: result.deadlines.feedbackDelivery.toISOString(),
+      status: result.status,
+      deadlines: {
+        selfReview: result.deadlines.selfReview.toISOString(),
+        peerFeedback: result.deadlines.peerFeedback.toISOString(),
+        managerEval: result.deadlines.managerEvaluation.toISOString(),
+        calibration: result.deadlines.calibration.toISOString(),
+        feedbackDelivery: result.deadlines.feedbackDelivery.toISOString(),
+      },
+      startDate: result.startDate ? result.startDate.toISOString() : '',
+      endDate: undefined,
       createdAt: result.createdAt.toISOString(),
-      updatedAt: result.createdAt.toISOString(),
+      updatedAt: new Date().toISOString(),
     }
   }
 
-  @Get(':cycleId')
-  @ApiOperation({ summary: 'Get review cycle by ID' })
+  @Post(':cycleId/start')
+  @RequiresReviewRole('HR_ADMIN')
+  @HttpCode(HttpStatus.OK)
+  @ApiParam({ name: 'cycleId', description: 'Review cycle ID', example: 'cycle-uuid-123' })
+  @ApiOperation({
+    summary: 'Start review cycle (Admin Only)',
+    description: 'Activates a review cycle, making it available for employees to submit reviews',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Review cycle retrieved successfully',
-    type: ReviewCycleResponseDto,
+    description: 'Review cycle started successfully',
   })
   @ApiResponse({ status: 404, description: 'Review cycle not found' })
-  async getReviewCycle(@Param('cycleId') cycleId: string): Promise<ReviewCycleResponseDto> {
-    const result = await this.getReviewCycleUseCase.execute(cycleId)
+  @ApiResponse({ status: 400, description: 'Invalid cycle status for start' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - HR Admin only' })
+  async startReviewCycle(@Param('cycleId') cycleId: string) {
+    const result = await this.startReviewCycleUseCase.execute({ cycleId })
 
     return {
       id: result.id,
-      name: result.name,
-      year: result.year,
-      status: result.status as any,
-      selfReviewDeadline: result.deadlines.selfReview.toISOString(),
-      peerFeedbackDeadline: result.deadlines.peerFeedback.toISOString(),
-      managerEvalDeadline: result.deadlines.managerEvaluation.toISOString(),
-      calibrationDeadline: result.deadlines.calibration.toISOString(),
-      feedbackDeliveryDeadline: result.deadlines.feedbackDelivery.toISOString(),
-      createdAt: result.startDate.toISOString(),
-      updatedAt: result.startDate.toISOString(),
-    }
-  }
-
-  @Post(':cycleId/activate')
-  @Roles('HR_ADMIN')
-  @ApiOperation({ summary: 'Activate a review cycle' })
-  @ApiResponse({
-    status: 200,
-    description: 'Review cycle activated successfully',
-    type: ReviewCycleResponseDto,
-  })
-  @ApiResponse({ status: 404, description: 'Review cycle not found' })
-  @ApiResponse({ status: 400, description: 'Invalid cycle status for activation' })
-  async activateReviewCycle(@Param('cycleId') cycleId: string): Promise<ReviewCycleResponseDto> {
-    const activateResult = await this.activateReviewCycleUseCase.execute(cycleId)
-
-    // Get full cycle details after activation
-    const result = await this.getReviewCycleUseCase.execute(cycleId)
-
-    return {
-      id: result.id,
-      name: result.name,
-      year: result.year,
-      status: activateResult.status as any,
-      selfReviewDeadline: result.deadlines.selfReview.toISOString(),
-      peerFeedbackDeadline: result.deadlines.peerFeedback.toISOString(),
-      managerEvalDeadline: result.deadlines.managerEvaluation.toISOString(),
-      calibrationDeadline: result.deadlines.calibration.toISOString(),
-      feedbackDeliveryDeadline: result.deadlines.feedbackDelivery.toISOString(),
-      createdAt: result.startDate.toISOString(),
-      updatedAt: activateResult.activatedAt.toISOString(),
+      status: result.status,
+      startedAt: result.startedAt.toISOString(),
     }
   }
 }

@@ -1,35 +1,35 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { ICalibrationSessionRepository } from '../../../domain/repositories/calibration-session.repository.interface';
-import { CalibrationSessionId } from '../../../domain/value-objects/calibration-session-id.vo';
+import { Injectable, Inject } from '@nestjs/common'
+import { ICalibrationSessionRepository } from '../../../domain/repositories/calibration-session.repository.interface'
+import { CalibrationSessionId } from '../../../domain/value-objects/calibration-session-id.vo'
 
 export interface GetCalibrationSessionOutput {
-  id: string;
-  cycleId: string;
-  department: string;
-  status: string;
-  notes: string;
-  lockedAt?: Date;
-  lockedBy?: string;
+  id: string
+  cycleId: string
+  department: string
+  status: string
+  notes: string
+  lockedAt?: Date
+  lockedBy?: string
   participants: Array<{
-    userId: string;
-    userName: string;
-    role: string;
-  }>;
+    userId: string
+    userName: string
+    role: string
+  }>
   evaluations: Array<{
-    evaluationId: string;
-    employeeId: string;
-    employeeName: string;
-    currentLevel: string;
-    proposedLevel: string;
+    evaluationId: string
+    employeeId: string
+    employeeName: string
+    currentLevel: string
+    proposedLevel: string
     scores: {
-      projectImpact: number;
-      direction: number;
-      engineeringExcellence: number;
-      operationalOwnership: number;
-      peopleImpact: number;
-    };
-  }>;
-  createdAt: Date;
+      projectImpact: number
+      direction: number
+      engineeringExcellence: number
+      operationalOwnership: number
+      peopleImpact: number
+    }
+  }>
+  createdAt: Date
 }
 
 @Injectable()
@@ -40,10 +40,10 @@ export class GetCalibrationSessionUseCase {
   ) {}
 
   async execute(sessionId: CalibrationSessionId): Promise<GetCalibrationSessionOutput | null> {
-    const session = await this.calibrationSessionRepository.findById(sessionId.value);
+    const session = await this.calibrationSessionRepository.findById(sessionId.value)
 
     if (!session) {
-      return null;
+      return null
     }
 
     return {
@@ -61,6 +61,6 @@ export class GetCalibrationSessionUseCase {
       })),
       evaluations: [], // TODO: Fetch evaluations for this session
       createdAt: session.scheduledAt,
-    };
+    }
   }
 }

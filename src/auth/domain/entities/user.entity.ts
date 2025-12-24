@@ -1,6 +1,6 @@
-import { Email } from '../value-objects/email.vo'
-import { UserId } from '../value-objects/user-id.vo'
-import { Role } from '../value-objects/role.vo'
+import type { Email } from '../value-objects/email.vo'
+import type { UserId } from '../value-objects/user-id.vo'
+import type { Role } from '../value-objects/role.vo'
 import { InvalidUserException } from '../exceptions/invalid-user.exception'
 
 export interface UserProps {

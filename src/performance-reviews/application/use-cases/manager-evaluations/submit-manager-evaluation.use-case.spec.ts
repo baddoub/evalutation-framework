@@ -1,13 +1,13 @@
 import { SubmitManagerEvaluationUseCase } from './submit-manager-evaluation.use-case'
-import { IManagerEvaluationRepository } from '../../../domain/repositories/manager-evaluation.repository.interface'
-import { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
-import { IUserRepository } from '../../../../auth/domain/repositories/user.repository.interface'
+import type { IManagerEvaluationRepository } from '../../../domain/repositories/manager-evaluation.repository.interface'
+import type { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
+import type { IUserRepository } from '../../../../auth/domain/repositories/user.repository.interface'
 import { ManagerEvaluationAlreadySubmittedException } from '../../../domain/exceptions/manager-evaluation-already-submitted.exception'
 import { ReviewNotFoundException } from '../../../domain/exceptions/review-not-found.exception'
 import { ManagerEvaluation } from '../../../domain/entities/manager-evaluation.entity'
 import { ReviewCycle } from '../../../domain/entities/review-cycle.entity'
 import { User } from '../../../../auth/domain/entities/user.entity'
-import { ManagerEvaluationId } from '../../../domain/value-objects/manager-evaluation-id.vo'
+import type { ManagerEvaluationId } from '../../../domain/value-objects/manager-evaluation-id.vo'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
 import { UserId } from '../../../../auth/domain/value-objects/user-id.vo'
 import { PillarScores } from '../../../domain/value-objects/pillar-scores.vo'
@@ -15,7 +15,7 @@ import { ReviewStatus } from '../../../domain/value-objects/review-status.vo'
 import { CycleDeadlines } from '../../../domain/value-objects/cycle-deadlines.vo'
 import { Email } from '../../../../auth/domain/value-objects/email.vo'
 import { Role } from '../../../../auth/domain/value-objects/role.vo'
-import { SubmitManagerEvaluationInput } from '../../dto/manager-evaluation.dto'
+import type { SubmitManagerEvaluationInput } from '../../dto/manager-evaluation.dto'
 
 describe('SubmitManagerEvaluationUseCase', () => {
   let useCase: SubmitManagerEvaluationUseCase
@@ -644,7 +644,7 @@ describe('SubmitManagerEvaluationUseCase', () => {
   })
 
   describe('CRITICAL: validation - manager-employee relationship', () => {
-    it('should throw Error if manager is not employee\'s direct manager', async () => {
+    it("should throw Error if manager is not employee's direct manager", async () => {
       // Arrange
       const cycleId = ReviewCycleId.generate()
       const employeeId = UserId.generate()
@@ -678,7 +678,9 @@ describe('SubmitManagerEvaluationUseCase', () => {
       mockUserRepository.findById.mockResolvedValue(employee)
 
       // Act & Assert
-      await expect(useCase.execute(input)).rejects.toThrow('You can only evaluate your direct reports')
+      await expect(useCase.execute(input)).rejects.toThrow(
+        'You can only evaluate your direct reports',
+      )
     })
 
     it('should verify manager-employee relationship with correct manager ID', async () => {

@@ -1,6 +1,6 @@
 import { UpdateSelfReviewUseCase } from './update-self-review.use-case'
-import { ISelfReviewRepository } from '../../../domain/repositories/self-review.repository.interface'
-import { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
+import type { ISelfReviewRepository } from '../../../domain/repositories/self-review.repository.interface'
+import type { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
 import { SelfReview } from '../../../domain/entities/self-review.entity'
 import { ReviewCycle } from '../../../domain/entities/review-cycle.entity'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
@@ -40,13 +40,15 @@ describe('UpdateSelfReviewUseCase', () => {
   }): SelfReview => {
     const cycleId = overrides?.cycleId ?? ReviewCycleId.generate()
     const userId = overrides?.userId ?? UserId.generate()
-    const scores = overrides?.scores ?? PillarScores.create({
-      projectImpact: 3,
-      direction: 2,
-      engineeringExcellence: 4,
-      operationalOwnership: 3,
-      peopleImpact: 2,
-    })
+    const scores =
+      overrides?.scores ??
+      PillarScores.create({
+        projectImpact: 3,
+        direction: 2,
+        engineeringExcellence: 4,
+        operationalOwnership: 3,
+        peopleImpact: 2,
+      })
     const narrative = overrides?.narrative ?? Narrative.create('This is my self-review narrative')
 
     return SelfReview.create({
@@ -188,7 +190,7 @@ describe('UpdateSelfReviewUseCase', () => {
         scores: newScoresData,
       }
 
-      void await useCase.execute(input)
+      void (await useCase.execute(input))
 
       expect(review.scores.projectImpact.value).toBe(newScoresData.projectImpact)
       expect(review.scores.direction.value).toBe(newScoresData.direction)
@@ -788,7 +790,7 @@ describe('UpdateSelfReviewUseCase', () => {
         },
       }
 
-      void await useCase.execute(input)
+      void (await useCase.execute(input))
 
       expect(updateNarrativeSpy).not.toHaveBeenCalled()
     })

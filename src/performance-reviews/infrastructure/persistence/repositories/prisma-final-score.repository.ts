@@ -63,8 +63,11 @@ export class PrismaFinalScoreRepository implements IFinalScoreRepository {
    * @param cycleId - ReviewCycleId
    * @returns FinalScore entity or null if not found
    */
-  async findByEmployeeAndCycle(employeeId: UserId, cycleId: ReviewCycleId): Promise<FinalScore | null> {
-    return this.findByUserAndCycle(employeeId, cycleId);
+  async findByEmployeeAndCycle(
+    employeeId: UserId,
+    cycleId: ReviewCycleId,
+  ): Promise<FinalScore | null> {
+    return this.findByUserAndCycle(employeeId, cycleId)
   }
 
   /**

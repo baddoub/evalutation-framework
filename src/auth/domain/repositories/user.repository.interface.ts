@@ -1,7 +1,7 @@
-import { User } from '../entities/user.entity'
-import { Email } from '../value-objects/email.vo'
-import { UserId } from '../value-objects/user-id.vo'
-import { Role } from '../value-objects/role.vo'
+import type { User } from '../entities/user.entity'
+import type { Email } from '../value-objects/email.vo'
+import type { UserId } from '../value-objects/user-id.vo'
+import type { Role } from '../value-objects/role.vo'
 
 /**
  * User Repository Interface

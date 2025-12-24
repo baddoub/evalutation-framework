@@ -1,8 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing'
+import type { TestingModule } from '@nestjs/testing'
+import { Test } from '@nestjs/testing'
 import { LogoutUserUseCase } from './logout-user.use-case'
-import { ISessionManager } from '../../ports/session-manager.interface'
-import { IRefreshTokenRepository } from '../../../domain/repositories/refresh-token.repository.interface'
-import { LogoutUserInput } from './logout-user.input'
+import type { ISessionManager } from '../../ports/session-manager.interface'
+import type { IRefreshTokenRepository } from '../../../domain/repositories/refresh-token.repository.interface'
+import type { LogoutUserInput } from './logout-user.input'
 import { UserId } from '../../../domain/value-objects/user-id.vo'
 
 describe('LogoutUserUseCase', () => {

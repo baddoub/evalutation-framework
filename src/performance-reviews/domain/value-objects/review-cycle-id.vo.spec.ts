@@ -7,7 +7,9 @@ describe('ReviewCycleId', () => {
       const id = ReviewCycleId.generate()
 
       expect(id).toBeInstanceOf(ReviewCycleId)
-      expect(id.value).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
+      expect(id.value).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+      )
     })
 
     it('should generate unique IDs', () => {
@@ -48,13 +50,17 @@ describe('ReviewCycleId', () => {
 
     it('should throw InvalidReviewCycleIdException for null/undefined', () => {
       expect(() => ReviewCycleId.fromString(null as any)).toThrow(InvalidReviewCycleIdException)
-      expect(() => ReviewCycleId.fromString(undefined as any)).toThrow(InvalidReviewCycleIdException)
+      expect(() => ReviewCycleId.fromString(undefined as any)).toThrow(
+        InvalidReviewCycleIdException,
+      )
     })
 
     it('should throw InvalidReviewCycleIdException for invalid UUID format', () => {
       expect(() => ReviewCycleId.fromString('not-a-uuid')).toThrow(InvalidReviewCycleIdException)
       expect(() => ReviewCycleId.fromString('12345')).toThrow(InvalidReviewCycleIdException)
-      expect(() => ReviewCycleId.fromString('550e8400-e29b-31d4-a716-446655440000')).toThrow(InvalidReviewCycleIdException) // Not v4
+      expect(() => ReviewCycleId.fromString('550e8400-e29b-31d4-a716-446655440000')).toThrow(
+        InvalidReviewCycleIdException,
+      ) // Not v4
     })
   })
 

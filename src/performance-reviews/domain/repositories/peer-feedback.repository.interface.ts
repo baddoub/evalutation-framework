@@ -1,7 +1,7 @@
-import { PeerFeedback } from '../entities/peer-feedback.entity'
-import { PeerFeedbackId } from '../value-objects/peer-feedback-id.vo'
-import { ReviewCycleId } from '../value-objects/review-cycle-id.vo'
-import { UserId } from '../../../auth/domain/value-objects/user-id.vo'
+import type { PeerFeedback } from '../entities/peer-feedback.entity'
+import type { PeerFeedbackId } from '../value-objects/peer-feedback-id.vo'
+import type { ReviewCycleId } from '../value-objects/review-cycle-id.vo'
+import type { UserId } from '../../../auth/domain/value-objects/user-id.vo'
 
 /**
  * IPeerFeedbackRepository Interface

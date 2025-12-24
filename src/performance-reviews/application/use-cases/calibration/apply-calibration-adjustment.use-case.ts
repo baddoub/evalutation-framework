@@ -8,7 +8,10 @@ import { PillarScores } from '../../../domain/value-objects/pillar-scores.vo'
 import { EngineerLevel } from '../../../domain/value-objects/engineer-level.vo'
 import { ManagerEvaluationId } from '../../../domain/entities/manager-evaluation.entity'
 import { ReviewNotFoundException } from '../../../domain/exceptions/review-not-found.exception'
-import { ApplyCalibrationAdjustmentInput, ApplyCalibrationAdjustmentOutput } from '../../dto/final-score.dto'
+import {
+  ApplyCalibrationAdjustmentInput,
+  ApplyCalibrationAdjustmentOutput,
+} from '../../dto/final-score.dto'
 
 @Injectable()
 export class ApplyCalibrationAdjustmentUseCase {
@@ -54,7 +57,9 @@ export class ApplyCalibrationAdjustmentUseCase {
 
     // 7. Recalculate scores
     const employee = await this.userRepository.findById(evaluation.employeeId)
-    const employeeLevel = employee?.level ? EngineerLevel.fromString(employee.level) : EngineerLevel.MID
+    const employeeLevel = employee?.level
+      ? EngineerLevel.fromString(employee.level)
+      : EngineerLevel.MID
     const oldWeightedScore = this.scoreCalculationService.calculateWeightedScore(
       PillarScores.create(originalScores),
       employeeLevel,

@@ -1,5 +1,5 @@
 import { ReviewCycleId } from '../value-objects/review-cycle-id.vo'
-import { CycleDeadlines } from '../value-objects/cycle-deadlines.vo'
+import type { CycleDeadlines } from '../value-objects/cycle-deadlines.vo'
 import { InvalidReviewCycleStateException } from '../exceptions/invalid-review-cycle-state.exception'
 
 /**
@@ -135,7 +135,9 @@ export class ReviewCycle {
   /**
    * Check if a specific deadline has passed
    */
-  hasDeadlinePassed(phase: 'selfReview' | 'peerFeedback' | 'managerEvaluation' | 'calibration' | 'feedbackDelivery'): boolean {
+  hasDeadlinePassed(
+    phase: 'selfReview' | 'peerFeedback' | 'managerEvaluation' | 'calibration' | 'feedbackDelivery',
+  ): boolean {
     return this._deadlines.hasPassedDeadline(phase)
   }
 

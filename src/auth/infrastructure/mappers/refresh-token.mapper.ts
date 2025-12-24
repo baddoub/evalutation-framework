@@ -1,4 +1,4 @@
-import { RefreshToken as PrismaRefreshToken } from '@prisma/client'
+import type { RefreshToken as PrismaRefreshToken } from '@prisma/client'
 import { RefreshToken } from '../../domain/entities/refresh-token.entity'
 import { UserId } from '../../domain/value-objects/user-id.vo'
 

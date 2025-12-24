@@ -1,7 +1,7 @@
 import { CalculateFinalScoresUseCase } from './calculate-final-scores.use-case'
-import { IFinalScoreRepository } from '../../../domain/repositories/final-score.repository.interface'
-import { IManagerEvaluationRepository } from '../../../domain/repositories/manager-evaluation.repository.interface'
-import { FinalScoreCalculationService } from '../../../domain/services/final-score-calculation.service'
+import type { IFinalScoreRepository } from '../../../domain/repositories/final-score.repository.interface'
+import type { IManagerEvaluationRepository } from '../../../domain/repositories/manager-evaluation.repository.interface'
+import type { FinalScoreCalculationService } from '../../../domain/services/final-score-calculation.service'
 import { ManagerEvaluation } from '../../../domain/entities/manager-evaluation.entity'
 import { FinalScore } from '../../../domain/entities/final-score.entity'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
@@ -839,9 +839,7 @@ describe('CalculateFinalScoresUseCase', () => {
     it('should calculate scores for entire cycle in one operation', async () => {
       // Arrange
       const cycleId = ReviewCycleId.generate()
-      const evaluations = Array.from({ length: 5 }, () =>
-        createValidManagerEvaluation({ cycleId }),
-      )
+      const evaluations = Array.from({ length: 5 }, () => createValidManagerEvaluation({ cycleId }))
 
       mockManagerEvaluationRepository.findByCycle.mockResolvedValue(evaluations)
 

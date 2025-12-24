@@ -1,13 +1,9 @@
-import { DomainException } from '../../../common/exceptions/domain.exception'
-
-/**
- * Exception thrown when narrative text exceeds the 1000 word limit
- *
- * Domain Layer Exception - represents business rule violation
- */
-export class NarrativeExceedsWordLimitException extends DomainException {
-  constructor(wordCount: number, code: string = 'NARRATIVE_EXCEEDS_WORD_LIMIT') {
-    super(`Narrative exceeds 1000 word limit. Current: ${wordCount} words`, code)
+export class NarrativeExceedsWordLimitException extends Error {
+  constructor(
+    public readonly wordCount: number,
+    public readonly maxWords = 1000,
+  ) {
+    super(`Narrative exceeds ${maxWords} word limit (current: ${wordCount} words)`)
     this.name = 'NarrativeExceedsWordLimitException'
   }
 }

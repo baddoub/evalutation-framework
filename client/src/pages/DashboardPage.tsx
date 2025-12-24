@@ -1,47 +1,59 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import authService from '../services/authService';
-import './DashboardPage.css';
+import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import authService from '../services/authService'
+import performanceReviewsService from '../services/performanceReviewsService'
+import { ReviewCycle } from '../types/performanceReviews'
+import './DashboardPage.css'
 
 interface User {
-  id: string;
-  email: string;
-  name: string;
-  roles: string[];
+  id: string
+  email: string
+  name: string
+  roles: string[]
 }
 
 const DashboardPage: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [activeCycle, setActiveCycle] = useState<ReviewCycle | null>(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchData = async () => {
       try {
-        const userData = await authService.getCurrentUser();
-        setUser(userData);
-      } catch (error) {
-        console.error('Failed to fetch user:', error);
-        navigate('/login');
-      } finally {
-        setLoading(false);
-      }
-    };
+        const userData = await authService.getCurrentUser()
+        setUser(userData)
 
-    fetchUser();
-  }, [navigate]);
+        try {
+          const cycle = await performanceReviewsService.getActiveCycle()
+          setActiveCycle(cycle)
+        } catch (cycleError) {
+          console.log('No active cycle found')
+        }
+      } catch (error) {
+        console.error('Failed to fetch user:', error)
+        navigate('/login')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [navigate])
 
   const handleLogout = () => {
-    authService.logout();
-    navigate('/login');
-  };
+    authService.logout()
+    navigate('/login')
+  }
+
+  const hasRole = (role: string) => user?.roles.includes(role)
 
   if (loading) {
     return (
       <div className="dashboard-container">
         <div className="loading">Loading...</div>
       </div>
-    );
+    )
   }
 
   return (
@@ -61,7 +73,119 @@ const DashboardPage: React.FC = () => {
       <div className="dashboard-content">
         <div className="welcome-card">
           <h2>Welcome to Your Dashboard</h2>
-          <p>You have successfully logged in!</p>
+          {activeCycle ? (
+            <p>
+              {activeCycle.name} is currently {activeCycle.status.toLowerCase()}
+            </p>
+          ) : (
+            <p>No active review cycle at this time</p>
+          )}
+        </div>
+
+        {activeCycle && (
+          <div className="info-card">
+            <h3>Active Review Cycle</h3>
+            <div className="profile-info">
+              <div className="info-item">
+                <span className="label">Cycle Name:</span>
+                <span className="value">{activeCycle.name}</span>
+              </div>
+              <div className="info-item">
+                <span className="label">Year:</span>
+                <span className="value">{activeCycle.year}</span>
+              </div>
+              <div className="info-item">
+                <span className="label">Status:</span>
+                <span className="value">{activeCycle.status}</span>
+              </div>
+              <div className="info-item">
+                <span className="label">Self-Review Deadline:</span>
+                <span className="value">
+                  {new Date(activeCycle.deadlines.selfReview).toLocaleDateString()}
+                </span>
+              </div>
+              <div className="info-item">
+                <span className="label">Peer Feedback Deadline:</span>
+                <span className="value">
+                  {new Date(activeCycle.deadlines.peerFeedback).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="feature-status">
+          <h3>Quick Actions</h3>
+          <div className="status-grid">
+            <div className="status-item active" onClick={() => navigate('/reviews/self-review')}>
+              <div className="status-icon">📝</div>
+              <div className="status-text">
+                <h4>Self-Review</h4>
+                <p>Complete your self-assessment</p>
+              </div>
+            </div>
+
+            <div
+              className="status-item active"
+              onClick={() => navigate('/reviews/peer-nomination')}
+            >
+              <div className="status-icon">👥</div>
+              <div className="status-text">
+                <h4>Nominate Peers</h4>
+                <p>Select your peer reviewers</p>
+              </div>
+            </div>
+
+            <div className="status-item active" onClick={() => navigate('/reviews/peer-feedback')}>
+              <div className="status-icon">💬</div>
+              <div className="status-text">
+                <h4>Peer Feedback</h4>
+                <p>Provide feedback for colleagues</p>
+              </div>
+            </div>
+
+            <div
+              className="status-item active"
+              onClick={() => navigate('/reviews/my-peer-feedback')}
+            >
+              <div className="status-icon">📊</div>
+              <div className="status-text">
+                <h4>My Peer Feedback</h4>
+                <p>View feedback from peers</p>
+              </div>
+            </div>
+
+            {hasRole('MANAGER') && (
+              <div className="status-item active" onClick={() => navigate('/reviews/team')}>
+                <div className="status-icon">👨‍💼</div>
+                <div className="status-text">
+                  <h4>Team Reviews</h4>
+                  <p>Manage team evaluations</p>
+                </div>
+              </div>
+            )}
+
+            <div className="status-item active" onClick={() => navigate('/reviews/final-score')}>
+              <div className="status-icon">🎯</div>
+              <div className="status-text">
+                <h4>Final Score</h4>
+                <p>View your performance rating</p>
+              </div>
+            </div>
+
+            {hasRole('HR_ADMIN') && (
+              <div
+                className="status-item active"
+                onClick={() => navigate('/reviews/admin/cycles')}
+              >
+                <div className="status-icon">⚙️</div>
+                <div className="status-text">
+                  <h4>Admin Panel</h4>
+                  <p>Manage review cycles</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="info-card">
@@ -85,29 +209,9 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
         </div>
-
-        <div className="feature-status">
-          <h3>System Status</h3>
-          <div className="status-grid">
-            <div className="status-item active">
-              <div className="status-icon">✓</div>
-              <div className="status-text">
-                <h4>Authentication</h4>
-                <p>Fully operational</p>
-              </div>
-            </div>
-            <div className="status-item pending">
-              <div className="status-icon">⏳</div>
-              <div className="status-text">
-                <h4>Performance Reviews</h4>
-                <p>Coming soon</p>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default DashboardPage;
+export default DashboardPage

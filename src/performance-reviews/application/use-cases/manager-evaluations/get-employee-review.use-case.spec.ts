@@ -1,10 +1,10 @@
 import { GetEmployeeReviewUseCase } from './get-employee-review.use-case'
-import { ISelfReviewRepository } from '../../../domain/repositories/self-review.repository.interface'
-import { IPeerFeedbackRepository } from '../../../domain/repositories/peer-feedback.repository.interface'
-import { IManagerEvaluationRepository } from '../../../domain/repositories/manager-evaluation.repository.interface'
-import { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
-import { IUserRepository } from '../../../../auth/domain/repositories/user.repository.interface'
-import { PeerFeedbackAggregationService } from '../../../domain/services/peer-feedback-aggregation.service'
+import type { ISelfReviewRepository } from '../../../domain/repositories/self-review.repository.interface'
+import type { IPeerFeedbackRepository } from '../../../domain/repositories/peer-feedback.repository.interface'
+import type { IManagerEvaluationRepository } from '../../../domain/repositories/manager-evaluation.repository.interface'
+import type { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
+import type { IUserRepository } from '../../../../auth/domain/repositories/user.repository.interface'
+import type { PeerFeedbackAggregationService } from '../../../domain/services/peer-feedback-aggregation.service'
 import { SelfReview } from '../../../domain/entities/self-review.entity'
 import { PeerFeedback } from '../../../domain/entities/peer-feedback.entity'
 import { ManagerEvaluation } from '../../../domain/entities/manager-evaluation.entity'
@@ -20,7 +20,10 @@ import { ReviewNotFoundException } from '../../../domain/exceptions/review-not-f
 import { UnauthorizedReviewAccessException } from '../../../domain/exceptions/unauthorized-review-access.exception'
 import { Email } from '../../../../auth/domain/value-objects/email.vo'
 import { Role } from '../../../../auth/domain/value-objects/role.vo'
-import { GetEmployeeReviewInput, GetEmployeeReviewOutput } from '../../dto/manager-evaluation.dto'
+import type {
+  GetEmployeeReviewInput,
+  GetEmployeeReviewOutput,
+} from '../../dto/manager-evaluation.dto'
 
 describe('GetEmployeeReviewUseCase', () => {
   let useCase: GetEmployeeReviewUseCase
@@ -58,10 +61,7 @@ describe('GetEmployeeReviewUseCase', () => {
     })
   }
 
-  const createValidUser = (overrides?: {
-    id?: UserId
-    managerId?: string
-  }): User => {
+  const createValidUser = (overrides?: { id?: UserId; managerId?: string }): User => {
     return User.create({
       id: overrides?.id ?? UserId.generate(),
       email: Email.create('test@example.com'),
@@ -78,10 +78,7 @@ describe('GetEmployeeReviewUseCase', () => {
     })
   }
 
-  const createValidSelfReview = (
-    cycleId: ReviewCycleId,
-    userId: UserId,
-  ): SelfReview => {
+  const createValidSelfReview = (cycleId: ReviewCycleId, userId: UserId): SelfReview => {
     return SelfReview.create({
       cycleId,
       userId,
@@ -560,16 +557,8 @@ describe('GetEmployeeReviewUseCase', () => {
         const manager = createValidUser({ id: input.managerId })
         const reviewerId1 = UserId.generate()
         const reviewerId2 = UserId.generate()
-        const peerFeedback1 = createValidPeerFeedback(
-          input.cycleId,
-          input.employeeId,
-          reviewerId1,
-        )
-        const peerFeedback2 = createValidPeerFeedback(
-          input.cycleId,
-          input.employeeId,
-          reviewerId2,
-        )
+        const peerFeedback1 = createValidPeerFeedback(input.cycleId, input.employeeId, reviewerId1)
+        const peerFeedback2 = createValidPeerFeedback(input.cycleId, input.employeeId, reviewerId2)
         const reviewer1 = createValidUser({ id: reviewerId1 })
         const reviewer2 = createValidUser({ id: reviewerId2 })
 
@@ -1100,16 +1089,8 @@ describe('GetEmployeeReviewUseCase', () => {
         const selfReview = createValidSelfReview(input.cycleId, input.employeeId)
         const reviewerId1 = UserId.generate()
         const reviewerId2 = UserId.generate()
-        const peerFeedback1 = createValidPeerFeedback(
-          input.cycleId,
-          input.employeeId,
-          reviewerId1,
-        )
-        const peerFeedback2 = createValidPeerFeedback(
-          input.cycleId,
-          input.employeeId,
-          reviewerId2,
-        )
+        const peerFeedback1 = createValidPeerFeedback(input.cycleId, input.employeeId, reviewerId1)
+        const peerFeedback2 = createValidPeerFeedback(input.cycleId, input.employeeId, reviewerId2)
         const reviewer1 = createValidUser({ id: reviewerId1 })
         const reviewer2 = createValidUser({ id: reviewerId2 })
         const managerEval = createValidManagerEvaluation(
@@ -1170,11 +1151,7 @@ describe('GetEmployeeReviewUseCase', () => {
         const employee = createValidUser({ id: input.employeeId, managerId: input.managerId.value })
         const manager = createValidUser({ id: input.managerId })
         const reviewerId = UserId.generate()
-        const peerFeedback = createValidPeerFeedback(
-          input.cycleId,
-          input.employeeId,
-          reviewerId,
-        )
+        const peerFeedback = createValidPeerFeedback(input.cycleId, input.employeeId, reviewerId)
         const reviewer = createValidUser({ id: reviewerId })
 
         cycleRepository.findById.mockResolvedValue(cycle)

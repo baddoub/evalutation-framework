@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { IPeerNominationRepository, PeerNomination } from '../../../domain/repositories/peer-nomination.repository.interface'
+import {
+  IPeerNominationRepository,
+  PeerNomination,
+} from '../../../domain/repositories/peer-nomination.repository.interface'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
 import { UserId } from '../../../../auth/domain/value-objects/user-id.vo'
 import { PrismaService } from '../../../../auth/infrastructure/persistence/prisma/prisma.service'
@@ -41,7 +44,10 @@ export class PrismaPeerNominationRepository implements IPeerNominationRepository
    * @param cycleId - ReviewCycleId
    * @returns Array of PeerNomination
    */
-  async findByNominatorAndCycle(nominatorId: UserId, cycleId: ReviewCycleId): Promise<PeerNomination[]> {
+  async findByNominatorAndCycle(
+    nominatorId: UserId,
+    cycleId: ReviewCycleId,
+  ): Promise<PeerNomination[]> {
     const prismaNominations = await this.prisma.peerNomination.findMany({
       where: {
         nominatorId: nominatorId.value,
@@ -59,7 +65,10 @@ export class PrismaPeerNominationRepository implements IPeerNominationRepository
    * @param cycleId - ReviewCycleId
    * @returns Array of PeerNomination
    */
-  async findByNomineeAndCycle(nomineeId: UserId, cycleId: ReviewCycleId): Promise<PeerNomination[]> {
+  async findByNomineeAndCycle(
+    nomineeId: UserId,
+    cycleId: ReviewCycleId,
+  ): Promise<PeerNomination[]> {
     const prismaNominations = await this.prisma.peerNomination.findMany({
       where: {
         nomineeId: nomineeId.value,

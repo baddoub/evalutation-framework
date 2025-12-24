@@ -1,9 +1,10 @@
 import { MarkFeedbackDeliveredUseCase } from './mark-feedback-delivered.use-case'
-import { IFinalScoreRepository } from '../../../domain/repositories/final-score.repository.interface'
-import { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
-import { IUserRepository } from '../../../../auth/domain/repositories/user.repository.interface'
+import type { IFinalScoreRepository } from '../../../domain/repositories/final-score.repository.interface'
+import type { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
+import type { IUserRepository } from '../../../../auth/domain/repositories/user.repository.interface'
 import { ReviewNotFoundException } from '../../../domain/exceptions/review-not-found.exception'
-import { FinalScore, FinalScoreId } from '../../../domain/entities/final-score.entity'
+import type { FinalScoreId } from '../../../domain/entities/final-score.entity'
+import { FinalScore } from '../../../domain/entities/final-score.entity'
 import { ReviewCycle } from '../../../domain/entities/review-cycle.entity'
 import { User } from '../../../../auth/domain/entities/user.entity'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
@@ -14,7 +15,10 @@ import { CycleDeadlines } from '../../../domain/value-objects/cycle-deadlines.vo
 import { EngineerLevel } from '../../../domain/value-objects/engineer-level.vo'
 import { Email } from '../../../../auth/domain/value-objects/email.vo'
 import { Role } from '../../../../auth/domain/value-objects/role.vo'
-import { MarkFeedbackDeliveredInput, MarkFeedbackDeliveredOutput } from '../../dto/final-score.dto'
+import type {
+  MarkFeedbackDeliveredInput,
+  MarkFeedbackDeliveredOutput,
+} from '../../dto/final-score.dto'
 
 describe('MarkFeedbackDeliveredUseCase', () => {
   let useCase: MarkFeedbackDeliveredUseCase
@@ -67,9 +71,7 @@ describe('MarkFeedbackDeliveredUseCase', () => {
           operationalOwnership: 3,
           peopleImpact: 3,
         }),
-      weightedScore:
-        overrides?.weightedScore ||
-        WeightedScore.fromValue(3.5),
+      weightedScore: overrides?.weightedScore || WeightedScore.fromValue(3.5),
       finalLevel: EngineerLevel.create('Senior'),
     })
 
@@ -104,7 +106,6 @@ describe('MarkFeedbackDeliveredUseCase', () => {
       updatedAt: new Date(),
     })
   }
-
 
   beforeEach(() => {
     mockFinalScoreRepository = {
@@ -885,7 +886,7 @@ describe('MarkFeedbackDeliveredUseCase', () => {
   })
 
   describe('IMPORTANT: Validate manager authorization', () => {
-    it('should throw error if manager is not the employee\'s direct manager', async () => {
+    it("should throw error if manager is not the employee's direct manager", async () => {
       // Arrange
       const cycleId = ReviewCycleId.generate()
       const employeeId = UserId.generate()
@@ -1225,7 +1226,7 @@ describe('MarkFeedbackDeliveredUseCase', () => {
       expect(mockFinalScoreRepository.findByUserAndCycle).not.toHaveBeenCalled()
     })
 
-    it('should confirm manager ID matches employee\'s manager', async () => {
+    it("should confirm manager ID matches employee's manager", async () => {
       // Arrange
       const employeeId = UserId.generate()
       const managerId = UserId.generate()

@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto'
 
 /**
  * CalibrationSessionId Value Object
@@ -8,27 +8,27 @@ import { v4 as uuidv4 } from 'uuid';
 export class CalibrationSessionId {
   private constructor(private readonly _value: string) {
     if (!_value || _value.trim().length === 0) {
-      throw new Error('CalibrationSessionId cannot be empty');
+      throw new Error('CalibrationSessionId cannot be empty')
     }
   }
 
   get value(): string {
-    return this._value;
+    return this._value
   }
 
   static create(value?: string): CalibrationSessionId {
-    return new CalibrationSessionId(value || uuidv4());
+    return new CalibrationSessionId(value || randomUUID())
   }
 
   static fromString(value: string): CalibrationSessionId {
-    return new CalibrationSessionId(value);
+    return new CalibrationSessionId(value)
   }
 
   equals(other: CalibrationSessionId): boolean {
-    return this._value === other._value;
+    return this._value === other._value
   }
 
   toString(): string {
-    return this._value;
+    return this._value
   }
 }

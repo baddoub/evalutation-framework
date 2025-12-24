@@ -1,11 +1,11 @@
 import { GetManagerEvaluationUseCase } from './get-manager-evaluation.use-case'
-import { IManagerEvaluationRepository } from '../../../domain/repositories/manager-evaluation.repository.interface'
+import type { IManagerEvaluationRepository } from '../../../domain/repositories/manager-evaluation.repository.interface'
 import { ManagerEvaluation } from '../../../domain/entities/manager-evaluation.entity'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
 import { UserId } from '../../../../auth/domain/value-objects/user-id.vo'
 import { PillarScores } from '../../../domain/value-objects/pillar-scores.vo'
 import { ReviewStatus } from '../../../domain/value-objects/review-status.vo'
-import { GetManagerEvaluationInput } from './get-manager-evaluation.use-case'
+import type { GetManagerEvaluationInput } from './get-manager-evaluation.use-case'
 
 describe('GetManagerEvaluationUseCase', () => {
   let useCase: GetManagerEvaluationUseCase
@@ -771,7 +771,8 @@ describe('GetManagerEvaluationUseCase', () => {
       it('should handle evaluation with special characters in narrative', async () => {
         // Arrange
         const input = createValidInput()
-        const specialNarrative = 'Evaluation & comments with "quotes" and \'apostrophes\' and émojis 🎉'
+        const specialNarrative =
+          'Evaluation & comments with "quotes" and \'apostrophes\' and émojis 🎉'
         const evaluation = ManagerEvaluation.create({
           cycleId: input.cycleId,
           employeeId: input.employeeId,

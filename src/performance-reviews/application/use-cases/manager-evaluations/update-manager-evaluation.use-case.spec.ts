@@ -1,5 +1,5 @@
 import { UpdateManagerEvaluationUseCase } from './update-manager-evaluation.use-case'
-import { IManagerEvaluationRepository } from '../../../domain/repositories/manager-evaluation.repository.interface'
+import type { IManagerEvaluationRepository } from '../../../domain/repositories/manager-evaluation.repository.interface'
 import { ManagerEvaluation } from '../../../domain/entities/manager-evaluation.entity'
 import { ManagerEvaluationId } from '../../../domain/value-objects/manager-evaluation-id.vo'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
@@ -24,13 +24,15 @@ describe('UpdateManagerEvaluationUseCase', () => {
     const cycleId = overrides?.cycleId ?? ReviewCycleId.generate()
     const employeeId = overrides?.employeeId ?? UserId.generate()
     const managerId = overrides?.managerId ?? UserId.generate()
-    const scores = overrides?.scores ?? PillarScores.create({
-      projectImpact: 3,
-      direction: 2,
-      engineeringExcellence: 4,
-      operationalOwnership: 3,
-      peopleImpact: 2,
-    })
+    const scores =
+      overrides?.scores ??
+      PillarScores.create({
+        projectImpact: 3,
+        direction: 2,
+        engineeringExcellence: 4,
+        operationalOwnership: 3,
+        peopleImpact: 2,
+      })
 
     return ManagerEvaluation.create({
       id,
@@ -72,7 +74,9 @@ describe('UpdateManagerEvaluationUseCase', () => {
 
       const result = await useCase.execute(input)
 
-      expect(mockRepository.findById).toHaveBeenCalledWith(ManagerEvaluationId.fromString(evaluationId.value))
+      expect(mockRepository.findById).toHaveBeenCalledWith(
+        ManagerEvaluationId.fromString(evaluationId.value),
+      )
       expect(result).toBeDefined()
       expect(result.id).toBe(evaluationId.value)
     })
@@ -162,7 +166,9 @@ describe('UpdateManagerEvaluationUseCase', () => {
 
       expect(evaluation.scores.projectImpact.value).toBe(newScoresData.projectImpact)
       expect(evaluation.scores.direction.value).toBe(newScoresData.direction)
-      expect(evaluation.scores.engineeringExcellence.value).toBe(newScoresData.engineeringExcellence)
+      expect(evaluation.scores.engineeringExcellence.value).toBe(
+        newScoresData.engineeringExcellence,
+      )
       expect(evaluation.scores.operationalOwnership.value).toBe(newScoresData.operationalOwnership)
       expect(evaluation.scores.peopleImpact.value).toBe(newScoresData.peopleImpact)
     })
@@ -697,7 +703,9 @@ describe('UpdateManagerEvaluationUseCase', () => {
         },
       }
 
-      await expect(useCase.execute(input)).rejects.toThrow(ManagerEvaluationAlreadySubmittedException)
+      await expect(useCase.execute(input)).rejects.toThrow(
+        ManagerEvaluationAlreadySubmittedException,
+      )
     })
 
     it('should throw error when trying to update performance narrative on submitted evaluation', async () => {
@@ -711,7 +719,9 @@ describe('UpdateManagerEvaluationUseCase', () => {
         performanceNarrative: 'Updated narrative',
       }
 
-      await expect(useCase.execute(input)).rejects.toThrow(ManagerEvaluationAlreadySubmittedException)
+      await expect(useCase.execute(input)).rejects.toThrow(
+        ManagerEvaluationAlreadySubmittedException,
+      )
     })
 
     it('should throw error when trying to update growth areas on submitted evaluation', async () => {
@@ -725,7 +735,9 @@ describe('UpdateManagerEvaluationUseCase', () => {
         growthAreas: 'Updated growth areas',
       }
 
-      await expect(useCase.execute(input)).rejects.toThrow(ManagerEvaluationAlreadySubmittedException)
+      await expect(useCase.execute(input)).rejects.toThrow(
+        ManagerEvaluationAlreadySubmittedException,
+      )
     })
 
     it('should throw error when trying to update proposed level on submitted evaluation', async () => {
@@ -739,7 +751,9 @@ describe('UpdateManagerEvaluationUseCase', () => {
         proposedLevel: 'senior',
       }
 
-      await expect(useCase.execute(input)).rejects.toThrow(ManagerEvaluationAlreadySubmittedException)
+      await expect(useCase.execute(input)).rejects.toThrow(
+        ManagerEvaluationAlreadySubmittedException,
+      )
     })
 
     it('should throw error when trying to update manager comments on submitted evaluation', async () => {
@@ -753,7 +767,9 @@ describe('UpdateManagerEvaluationUseCase', () => {
         managerComments: 'Manager comments',
       }
 
-      await expect(useCase.execute(input)).rejects.toThrow(ManagerEvaluationAlreadySubmittedException)
+      await expect(useCase.execute(input)).rejects.toThrow(
+        ManagerEvaluationAlreadySubmittedException,
+      )
     })
   })
 

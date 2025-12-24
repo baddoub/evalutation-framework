@@ -1,83 +1,104 @@
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus, Logger } from '@nestjs/common'
+import { Response } from 'express'
 import {
-  ExceptionFilter,
-  Catch,
-  ArgumentsHost,
-  HttpStatus,
-} from '@nestjs/common';
-import { Response } from 'express';
-import { ReviewCycleNotFoundException } from '../../domain/exceptions/review-cycle-not-found.exception';
-import { SelfReviewNotFoundException } from '../../domain/exceptions/self-review-not-found.exception';
-import { PeerNominationNotFoundException } from '../../domain/exceptions/peer-nomination-not-found.exception';
-import { ManagerEvaluationNotFoundException } from '../../domain/exceptions/manager-evaluation-not-found.exception';
-import { CalibrationSessionNotFoundException } from '../../domain/exceptions/calibration-session-not-found.exception';
-import { FinalScoreNotFoundException } from '../../domain/exceptions/final-score-not-found.exception';
-import { ScoreAdjustmentRequestNotFoundException } from '../../domain/exceptions/score-adjustment-request-not-found.exception';
-import { SelfReviewDeadlinePassedException } from '../../domain/exceptions/self-review-deadline-passed.exception';
-import { PeerFeedbackDeadlinePassedException } from '../../domain/exceptions/peer-feedback-deadline-passed.exception';
-import { ManagerEvalDeadlinePassedException } from '../../domain/exceptions/manager-eval-deadline-passed.exception';
-import { CalibrationDeadlinePassedException } from '../../domain/exceptions/calibration-deadline-passed.exception';
-import { InvalidReviewCycleStatusException } from '../../domain/exceptions/invalid-review-cycle-status.exception';
-import { InvalidReviewStatusException } from '../../domain/exceptions/invalid-review-status.exception';
-import { CalibrationAlreadyLockedException } from '../../domain/exceptions/calibration-already-locked.exception';
-
-@Catch(
+  ReviewNotFoundException,
   ReviewCycleNotFoundException,
-  SelfReviewNotFoundException,
-  PeerNominationNotFoundException,
-  ManagerEvaluationNotFoundException,
-  CalibrationSessionNotFoundException,
-  FinalScoreNotFoundException,
-  ScoreAdjustmentRequestNotFoundException,
-  SelfReviewDeadlinePassedException,
-  PeerFeedbackDeadlinePassedException,
-  ManagerEvalDeadlinePassedException,
-  CalibrationDeadlinePassedException,
-  InvalidReviewCycleStatusException,
-  InvalidReviewStatusException,
-  CalibrationAlreadyLockedException,
-)
+  DeadlinePassedException,
+  InvalidPillarScoreException,
+  NarrativeExceedsWordLimitException,
+  InsufficientPeerNominationsException,
+  CannotNominateSelfException,
+  CannotNominateManagerException,
+  ReviewAlreadySubmittedException,
+  IncompleteReviewException,
+  UnauthorizedAccessException,
+} from '../../domain/exceptions'
+
+@Catch()
 export class ReviewExceptionFilter implements ExceptionFilter {
-  catch(exception: any, host: ArgumentsHost) {
-    const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
+  private readonly logger = new Logger(ReviewExceptionFilter.name)
 
-    // Map domain exceptions to HTTP status codes
-    let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let errorCode = 'INTERNAL_ERROR';
+  catch(exception: unknown, host: ArgumentsHost) {
+    const ctx = host.switchToHttp()
+    const response = ctx.getResponse<Response>()
+    const request = ctx.getRequest<Request>()
 
-    if (
-      exception instanceof ReviewCycleNotFoundException ||
-      exception instanceof SelfReviewNotFoundException ||
-      exception instanceof PeerNominationNotFoundException ||
-      exception instanceof ManagerEvaluationNotFoundException ||
-      exception instanceof CalibrationSessionNotFoundException ||
-      exception instanceof FinalScoreNotFoundException ||
-      exception instanceof ScoreAdjustmentRequestNotFoundException
-    ) {
-      status = HttpStatus.NOT_FOUND;
-      errorCode = 'RESOURCE_NOT_FOUND';
-    } else if (
-      exception instanceof SelfReviewDeadlinePassedException ||
-      exception instanceof PeerFeedbackDeadlinePassedException ||
-      exception instanceof ManagerEvalDeadlinePassedException ||
-      exception instanceof CalibrationDeadlinePassedException
-    ) {
-      status = HttpStatus.BAD_REQUEST;
-      errorCode = 'DEADLINE_PASSED';
-    } else if (
-      exception instanceof InvalidReviewCycleStatusException ||
-      exception instanceof InvalidReviewStatusException ||
-      exception instanceof CalibrationAlreadyLockedException
-    ) {
-      status = HttpStatus.BAD_REQUEST;
-      errorCode = 'INVALID_STATE';
+    // Log all exceptions for debugging
+    this.logger.error('Exception caught in ReviewExceptionFilter:', exception)
+    if (exception instanceof Error) {
+      this.logger.error('Stack trace:', exception.stack)
+    }
+
+    let status = HttpStatus.INTERNAL_SERVER_ERROR
+    let message = 'Internal server error'
+    let error = 'Internal Server Error'
+    let additionalData: Record<string, unknown> = {}
+
+    // Map domain exceptions to HTTP responses
+    if (exception instanceof ReviewNotFoundException) {
+      status = HttpStatus.NOT_FOUND
+      message = exception.message
+      error = 'Not Found'
+    } else if (exception instanceof ReviewCycleNotFoundException) {
+      status = HttpStatus.NOT_FOUND
+      message = exception.message
+      error = 'Not Found'
+    } else if (exception instanceof DeadlinePassedException) {
+      status = HttpStatus.FORBIDDEN
+      message = exception.message
+      error = 'Forbidden'
+      additionalData = { deadline: exception.deadline.toISOString() }
+    } else if (exception instanceof InvalidPillarScoreException) {
+      status = HttpStatus.BAD_REQUEST
+      message = exception.message
+      error = 'Bad Request'
+    } else if (exception instanceof NarrativeExceedsWordLimitException) {
+      status = HttpStatus.BAD_REQUEST
+      message = exception.message
+      error = 'Bad Request'
+      additionalData = { wordCount: exception.wordCount, maxWords: exception.maxWords }
+    } else if (exception instanceof InsufficientPeerNominationsException) {
+      status = HttpStatus.BAD_REQUEST
+      message = exception.message
+      error = 'Bad Request'
+    } else if (exception instanceof CannotNominateSelfException) {
+      status = HttpStatus.BAD_REQUEST
+      message = exception.message
+      error = 'Bad Request'
+    } else if (exception instanceof CannotNominateManagerException) {
+      status = HttpStatus.BAD_REQUEST
+      message = exception.message
+      error = 'Bad Request'
+    } else if (exception instanceof ReviewAlreadySubmittedException) {
+      status = HttpStatus.CONFLICT
+      message = exception.message
+      error = 'Conflict'
+    } else if (exception instanceof IncompleteReviewException) {
+      status = HttpStatus.BAD_REQUEST
+      message = exception.message
+      error = 'Bad Request'
+    } else if (exception instanceof UnauthorizedAccessException) {
+      status = HttpStatus.FORBIDDEN
+      message = exception.message
+      error = 'Forbidden'
+    } else if (exception instanceof HttpException) {
+      status = exception.getStatus()
+      const exceptionResponse = exception.getResponse()
+      if (typeof exceptionResponse === 'string') {
+        message = exceptionResponse
+      } else if (typeof exceptionResponse === 'object') {
+        message = (exceptionResponse as any).message || exception.message
+        error = (exceptionResponse as any).error || error
+      }
     }
 
     response.status(status).json({
       statusCode: status,
-      errorCode,
-      message: exception.message,
+      message,
+      error,
       timestamp: new Date().toISOString(),
-    });
+      path: request.url,
+      ...additionalData,
+    })
   }
 }

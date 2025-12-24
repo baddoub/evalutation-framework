@@ -1,12 +1,12 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { ICalibrationSessionRepository } from '../../../domain/repositories/calibration-session.repository.interface';
-import { CalibrationSessionId } from '../../../domain/value-objects/calibration-session-id.vo';
-import { UserId } from '../../../../auth/domain/value-objects/user-id.vo';
-import { GetCalibrationSessionOutput } from './get-calibration-session.use-case';
+import { Injectable, Inject } from '@nestjs/common'
+import { ICalibrationSessionRepository } from '../../../domain/repositories/calibration-session.repository.interface'
+import { CalibrationSessionId } from '../../../domain/value-objects/calibration-session-id.vo'
+import { UserId } from '../../../../auth/domain/value-objects/user-id.vo'
+import { GetCalibrationSessionOutput } from './get-calibration-session.use-case'
 
 export interface LockCalibrationInput {
-  sessionId: CalibrationSessionId;
-  lockedBy: UserId;
+  sessionId: CalibrationSessionId
+  lockedBy: UserId
 }
 
 @Injectable()
@@ -17,10 +17,10 @@ export class LockCalibrationUseCase {
   ) {}
 
   async execute(input: LockCalibrationInput): Promise<GetCalibrationSessionOutput> {
-    const session = await this.calibrationSessionRepository.findById(input.sessionId.value);
+    const session = await this.calibrationSessionRepository.findById(input.sessionId.value)
 
     if (!session) {
-      throw new Error('Calibration session not found');
+      throw new Error('Calibration session not found')
     }
 
     // Lock the session by updating its status and completion timestamp
@@ -28,9 +28,9 @@ export class LockCalibrationUseCase {
       ...session,
       status: 'COMPLETED' as const,
       completedAt: new Date(),
-    };
+    }
 
-    const saved = await this.calibrationSessionRepository.save(lockedSession);
+    const saved = await this.calibrationSessionRepository.save(lockedSession)
 
     return {
       id: saved.id,
@@ -47,6 +47,6 @@ export class LockCalibrationUseCase {
       })),
       evaluations: [],
       createdAt: saved.scheduledAt,
-    };
+    }
   }
 }

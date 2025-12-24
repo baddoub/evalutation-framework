@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common'
 import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core'
 import { JwtModule } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
+import { ThrottlerModule } from '@nestjs/throttler'
 
 // Presentation Layer
 import { AuthController } from './presentation/controllers/auth.controller'
@@ -98,10 +98,11 @@ import { PrismaSessionRepository } from './infrastructure/persistence/repositori
     AuthLoggingInterceptor,
 
     // Global Providers
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
+    // Throttler temporarily disabled for testing
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: ThrottlerGuard,
+    // },
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

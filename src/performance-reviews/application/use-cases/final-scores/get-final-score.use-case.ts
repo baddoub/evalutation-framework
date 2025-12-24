@@ -32,10 +32,7 @@ export class GetFinalScoreUseCase {
     private readonly finalScoreRepository: IFinalScoreRepository,
   ) {}
 
-  async execute(
-    employeeId: string,
-    cycleId: string,
-  ): Promise<GetFinalScoreOutput | null> {
+  async execute(employeeId: string, cycleId: string): Promise<GetFinalScoreOutput | null> {
     const finalScore = await this.finalScoreRepository.findByEmployeeAndCycle(
       UserId.fromString(employeeId),
       ReviewCycleId.create(cycleId),

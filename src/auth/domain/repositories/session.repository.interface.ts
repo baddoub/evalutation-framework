@@ -1,5 +1,5 @@
-import { Session } from '../entities/session.entity'
-import { UserId } from '../value-objects/user-id.vo'
+import type { Session } from '../entities/session.entity'
+import type { UserId } from '../value-objects/user-id.vo'
 
 /**
  * Session Repository Interface

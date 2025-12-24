@@ -1,8 +1,8 @@
-import { ReviewCycleId } from '../value-objects/review-cycle-id.vo'
+import type { ReviewCycleId } from '../value-objects/review-cycle-id.vo'
 import { SelfReviewId } from '../value-objects/self-review-id.vo'
-import { UserId } from '../../../auth/domain/value-objects/user-id.vo'
-import { PillarScores } from '../value-objects/pillar-scores.vo'
-import { Narrative } from '../value-objects/narrative.vo'
+import type { UserId } from '../../../auth/domain/value-objects/user-id.vo'
+import type { PillarScores } from '../value-objects/pillar-scores.vo'
+import type { Narrative } from '../value-objects/narrative.vo'
 import { ReviewStatus } from '../value-objects/review-status.vo'
 import { SelfReviewAlreadySubmittedException } from '../exceptions/self-review-already-submitted.exception'
 
@@ -112,6 +112,8 @@ export class SelfReview {
   }
 
   get isSubmitted(): boolean {
-    return this._status.equals(ReviewStatus.SUBMITTED) || this._status.equals(ReviewStatus.CALIBRATED)
+    return (
+      this._status.equals(ReviewStatus.SUBMITTED) || this._status.equals(ReviewStatus.CALIBRATED)
+    )
   }
 }

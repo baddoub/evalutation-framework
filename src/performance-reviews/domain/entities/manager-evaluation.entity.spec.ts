@@ -167,8 +167,12 @@ describe('ManagerEvaluation', () => {
         peopleImpact: 4,
       })
 
-      expect(() => evaluation.updateScores(newScores)).toThrow(ManagerEvaluationAlreadySubmittedException)
-      expect(() => evaluation.updateScores(newScores)).toThrow('Cannot update scores after submission')
+      expect(() => evaluation.updateScores(newScores)).toThrow(
+        ManagerEvaluationAlreadySubmittedException,
+      )
+      expect(() => evaluation.updateScores(newScores)).toThrow(
+        'Cannot update scores after submission',
+      )
     })
 
     it('should allow multiple score updates while in DRAFT status', () => {
@@ -249,10 +253,18 @@ describe('ManagerEvaluation', () => {
       const newNarrative = Narrative.create('New performance narrative')
       const newGrowthAreas = Narrative.create('New growth areas')
 
-      expect(() => evaluation.updateScores(newScores)).toThrow(ManagerEvaluationAlreadySubmittedException)
-      expect(() => evaluation.updatePerformanceNarrative(newNarrative)).toThrow(ManagerEvaluationAlreadySubmittedException)
-      expect(() => evaluation.updateGrowthAreas(newGrowthAreas)).toThrow(ManagerEvaluationAlreadySubmittedException)
-      expect(() => evaluation.updateProposedLevel(EngineerLevel.LEAD)).toThrow(ManagerEvaluationAlreadySubmittedException)
+      expect(() => evaluation.updateScores(newScores)).toThrow(
+        ManagerEvaluationAlreadySubmittedException,
+      )
+      expect(() => evaluation.updatePerformanceNarrative(newNarrative)).toThrow(
+        ManagerEvaluationAlreadySubmittedException,
+      )
+      expect(() => evaluation.updateGrowthAreas(newGrowthAreas)).toThrow(
+        ManagerEvaluationAlreadySubmittedException,
+      )
+      expect(() => evaluation.updateProposedLevel(EngineerLevel.LEAD)).toThrow(
+        ManagerEvaluationAlreadySubmittedException,
+      )
     })
   })
 
@@ -289,7 +301,9 @@ describe('ManagerEvaluation', () => {
       const props = createValidProps()
       const evaluation = ManagerEvaluation.create(props)
 
-      expect(() => evaluation.calibrate()).toThrow('Cannot calibrate evaluation that has not been submitted')
+      expect(() => evaluation.calibrate()).toThrow(
+        'Cannot calibrate evaluation that has not been submitted',
+      )
     })
   })
 
@@ -332,7 +346,7 @@ describe('ManagerEvaluation', () => {
       })
 
       expect(() => evaluation.applyCalibrationAdjustment(newScores, 'justification')).toThrow(
-        'Cannot apply calibration to unsubmitted evaluation'
+        'Cannot apply calibration to unsubmitted evaluation',
       )
     })
 
@@ -385,8 +399,12 @@ describe('ManagerEvaluation', () => {
 
       const newNarrative = Narrative.create('Updated narrative')
 
-      expect(() => evaluation.updatePerformanceNarrative(newNarrative)).toThrow(ManagerEvaluationAlreadySubmittedException)
-      expect(() => evaluation.updatePerformanceNarrative(newNarrative)).toThrow('Cannot update performance narrative after submission')
+      expect(() => evaluation.updatePerformanceNarrative(newNarrative)).toThrow(
+        ManagerEvaluationAlreadySubmittedException,
+      )
+      expect(() => evaluation.updatePerformanceNarrative(newNarrative)).toThrow(
+        'Cannot update performance narrative after submission',
+      )
     })
   })
 
@@ -410,8 +428,12 @@ describe('ManagerEvaluation', () => {
 
       const newGrowthAreas = Narrative.create('Updated growth areas')
 
-      expect(() => evaluation.updateGrowthAreas(newGrowthAreas)).toThrow(ManagerEvaluationAlreadySubmittedException)
-      expect(() => evaluation.updateGrowthAreas(newGrowthAreas)).toThrow('Cannot update growth areas after submission')
+      expect(() => evaluation.updateGrowthAreas(newGrowthAreas)).toThrow(
+        ManagerEvaluationAlreadySubmittedException,
+      )
+      expect(() => evaluation.updateGrowthAreas(newGrowthAreas)).toThrow(
+        'Cannot update growth areas after submission',
+      )
     })
   })
 
@@ -432,8 +454,12 @@ describe('ManagerEvaluation', () => {
       const evaluation = ManagerEvaluation.create(props)
       evaluation.submit()
 
-      expect(() => evaluation.updateProposedLevel(EngineerLevel.LEAD)).toThrow(ManagerEvaluationAlreadySubmittedException)
-      expect(() => evaluation.updateProposedLevel(EngineerLevel.LEAD)).toThrow('Cannot update proposed level after submission')
+      expect(() => evaluation.updateProposedLevel(EngineerLevel.LEAD)).toThrow(
+        ManagerEvaluationAlreadySubmittedException,
+      )
+      expect(() => evaluation.updateProposedLevel(EngineerLevel.LEAD)).toThrow(
+        'Cannot update proposed level after submission',
+      )
     })
 
     it('should allow updating proposed level multiple times in DRAFT', () => {

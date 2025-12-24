@@ -56,7 +56,10 @@ export class ReviewScoreAdjustmentUseCase {
         )
         if (managerEval) {
           const newScores = PillarScores.create(request.proposedScores.toPlainObject())
-          managerEval.applyCalibrationAdjustment(newScores, `Score adjustment approved: ${request.reason}`)
+          managerEval.applyCalibrationAdjustment(
+            newScores,
+            `Score adjustment approved: ${request.reason}`,
+          )
           await this.managerEvaluationRepository.save(managerEval)
         }
 

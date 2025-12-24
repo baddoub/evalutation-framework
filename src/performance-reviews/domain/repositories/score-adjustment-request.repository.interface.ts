@@ -1,6 +1,6 @@
-import { ReviewCycleId } from '../value-objects/review-cycle-id.vo'
-import { UserId } from '../../../auth/domain/value-objects/user-id.vo'
-import { PillarScores } from '../value-objects/pillar-scores.vo'
+import type { ReviewCycleId } from '../value-objects/review-cycle-id.vo'
+import type { UserId } from '../../../auth/domain/value-objects/user-id.vo'
+import type { PillarScores } from '../value-objects/pillar-scores.vo'
 
 export interface ScoreAdjustmentRequest {
   id: string

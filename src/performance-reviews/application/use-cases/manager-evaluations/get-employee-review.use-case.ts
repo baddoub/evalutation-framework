@@ -45,7 +45,9 @@ export class GetEmployeeReviewUseCase {
     }
 
     if (employee.managerId !== input.managerId.value) {
-      throw new UnauthorizedReviewAccessException('You can only view reviews of your direct reports')
+      throw new UnauthorizedReviewAccessException(
+        'You can only view reviews of your direct reports',
+      )
     }
 
     // 4. Get self-review

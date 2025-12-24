@@ -1,6 +1,6 @@
-import { ManagerEvaluation, ManagerEvaluationId } from '../entities/manager-evaluation.entity'
-import { ReviewCycleId } from '../value-objects/review-cycle-id.vo'
-import { UserId } from '../../../auth/domain/value-objects/user-id.vo'
+import type { ManagerEvaluation, ManagerEvaluationId } from '../entities/manager-evaluation.entity'
+import type { ReviewCycleId } from '../value-objects/review-cycle-id.vo'
+import type { UserId } from '../../../auth/domain/value-objects/user-id.vo'
 
 /**
  * IManagerEvaluationRepository Interface
@@ -10,7 +10,10 @@ import { UserId } from '../../../auth/domain/value-objects/user-id.vo'
  */
 export interface IManagerEvaluationRepository {
   findById(id: ManagerEvaluationId): Promise<ManagerEvaluation | null>
-  findByEmployeeAndCycle(employeeId: UserId, cycleId: ReviewCycleId): Promise<ManagerEvaluation | null>
+  findByEmployeeAndCycle(
+    employeeId: UserId,
+    cycleId: ReviewCycleId,
+  ): Promise<ManagerEvaluation | null>
   findByManagerAndCycle(managerId: UserId, cycleId: ReviewCycleId): Promise<ManagerEvaluation[]>
   findByCycle(cycleId: ReviewCycleId): Promise<ManagerEvaluation[]>
   save(evaluation: ManagerEvaluation): Promise<ManagerEvaluation>

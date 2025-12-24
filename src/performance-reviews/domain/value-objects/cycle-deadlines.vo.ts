@@ -109,7 +109,9 @@ export class CycleDeadlines {
    * @param phase - Phase name
    * @returns true if deadline has passed
    */
-  hasPassedDeadline(phase: 'selfReview' | 'peerFeedback' | 'managerEvaluation' | 'calibration' | 'feedbackDelivery'): boolean {
+  hasPassedDeadline(
+    phase: 'selfReview' | 'peerFeedback' | 'managerEvaluation' | 'calibration' | 'feedbackDelivery',
+  ): boolean {
     const now = new Date()
     const deadline = this[phase]
     return now > deadline

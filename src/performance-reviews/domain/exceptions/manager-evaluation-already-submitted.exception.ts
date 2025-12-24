@@ -6,7 +6,10 @@ import { DomainException } from '../../../common/exceptions/domain.exception'
  * Domain Layer Exception - represents business rule violation
  */
 export class ManagerEvaluationAlreadySubmittedException extends DomainException {
-  constructor(message: string = 'Manager evaluation has already been submitted', code: string = 'MANAGER_EVALUATION_ALREADY_SUBMITTED') {
+  constructor(
+    message: string = 'Manager evaluation has already been submitted',
+    code: string = 'MANAGER_EVALUATION_ALREADY_SUBMITTED',
+  ) {
     super(message, code)
     this.name = 'ManagerEvaluationAlreadySubmittedException'
   }

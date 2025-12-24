@@ -1,5 +1,6 @@
-import { GetFinalScoreUseCase, GetFinalScoreOutput } from './get-final-score.use-case'
-import { IFinalScoreRepository } from '../../../domain/repositories/final-score.repository.interface'
+import type { GetFinalScoreOutput } from './get-final-score.use-case'
+import { GetFinalScoreUseCase } from './get-final-score.use-case'
+import type { IFinalScoreRepository } from '../../../domain/repositories/final-score.repository.interface'
 import { FinalScore } from '../../../domain/entities/final-score.entity'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
 import { UserId } from '../../../../auth/domain/value-objects/user-id.vo'
@@ -17,10 +18,7 @@ describe('GetFinalScoreUseCase', () => {
     cycleId: ReviewCycleId.generate().value,
   })
 
-  const createValidFinalScore = (
-    cycleId: ReviewCycleId,
-    employeeId: UserId,
-  ): FinalScore => {
+  const createValidFinalScore = (cycleId: ReviewCycleId, employeeId: UserId): FinalScore => {
     return FinalScore.create({
       cycleId,
       userId: employeeId,
@@ -1149,9 +1147,7 @@ describe('GetFinalScoreUseCase', () => {
         // Assert
         expect(result!.cycleId).toBe(score.cycleId.value)
         expect(result!.employeeId).toBe(score.employeeId.value)
-        expect(result!.finalScores.projectImpact).toBe(
-          score.finalScores.projectImpact.value,
-        )
+        expect(result!.finalScores.projectImpact).toBe(score.finalScores.projectImpact.value)
         expect(result!.bonusTier).toBe(score.bonusTier.value)
       })
 

@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common'
 import { IManagerEvaluationRepository } from '../../../domain/repositories/manager-evaluation.repository.interface'
-import { ManagerEvaluation, ManagerEvaluationId } from '../../../domain/entities/manager-evaluation.entity'
+import {
+  ManagerEvaluation,
+  ManagerEvaluationId,
+} from '../../../domain/entities/manager-evaluation.entity'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
 import { UserId } from '../../../../auth/domain/value-objects/user-id.vo'
 import { PrismaService } from '../../../../auth/infrastructure/persistence/prisma/prisma.service'
@@ -42,7 +45,10 @@ export class PrismaManagerEvaluationRepository implements IManagerEvaluationRepo
    * @param cycleId - ReviewCycleId
    * @returns ManagerEvaluation entity or null if not found
    */
-  async findByEmployeeAndCycle(employeeId: UserId, cycleId: ReviewCycleId): Promise<ManagerEvaluation | null> {
+  async findByEmployeeAndCycle(
+    employeeId: UserId,
+    cycleId: ReviewCycleId,
+  ): Promise<ManagerEvaluation | null> {
     const prismaEvaluation = await this.prisma.managerEvaluation.findUnique({
       where: {
         cycleId_employeeId: {
@@ -62,7 +68,10 @@ export class PrismaManagerEvaluationRepository implements IManagerEvaluationRepo
    * @param cycleId - ReviewCycleId
    * @returns Array of ManagerEvaluation entities
    */
-  async findByManagerAndCycle(managerId: UserId, cycleId: ReviewCycleId): Promise<ManagerEvaluation[]> {
+  async findByManagerAndCycle(
+    managerId: UserId,
+    cycleId: ReviewCycleId,
+  ): Promise<ManagerEvaluation[]> {
     const prismaEvaluations = await this.prisma.managerEvaluation.findMany({
       where: {
         managerId: managerId.value,

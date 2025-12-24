@@ -5,7 +5,10 @@ import { IUserRepository } from '../../../../auth/domain/repositories/user.repos
 import { ScoreCalculationService } from '../../../domain/services/score-calculation.service'
 import { EngineerLevel } from '../../../domain/value-objects/engineer-level.vo'
 import { ReviewNotFoundException } from '../../../domain/exceptions/review-not-found.exception'
-import { GetCalibrationDashboardInput, GetCalibrationDashboardOutput } from '../../dto/final-score.dto'
+import {
+  GetCalibrationDashboardInput,
+  GetCalibrationDashboardOutput,
+} from '../../dto/final-score.dto'
 
 @Injectable()
 export class GetCalibrationDashboardUseCase {
@@ -50,7 +53,9 @@ export class GetCalibrationDashboardUseCase {
         const employee = await this.userRepository.findById(evaluation.employeeId)
         const manager = await this.userRepository.findById(evaluation.managerId)
 
-        const employeeLevel = employee?.level ? EngineerLevel.fromString(employee.level) : EngineerLevel.MID
+        const employeeLevel = employee?.level
+          ? EngineerLevel.fromString(employee.level)
+          : EngineerLevel.MID
         const weightedScore = this.scoreCalculationService.calculateWeightedScore(
           evaluation.scores,
           employeeLevel,

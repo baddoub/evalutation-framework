@@ -1,5 +1,6 @@
-import { DeliverFeedbackUseCase, DeliverFeedbackInput, DeliverFeedbackOutput } from './deliver-feedback.use-case'
-import { IFinalScoreRepository } from '../../../domain/repositories/final-score.repository.interface'
+import type { DeliverFeedbackInput, DeliverFeedbackOutput } from './deliver-feedback.use-case'
+import { DeliverFeedbackUseCase } from './deliver-feedback.use-case'
+import type { IFinalScoreRepository } from '../../../domain/repositories/final-score.repository.interface'
 import { FinalScore, FinalScoreId } from '../../../domain/entities/final-score.entity'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
 import { UserId } from '../../../../auth/domain/value-objects/user-id.vo'
@@ -721,7 +722,7 @@ describe('DeliverFeedbackUseCase', () => {
       const result1 = await useCase.execute(input)
 
       // Small delay to ensure timestamps differ
-      await new Promise(resolve => setTimeout(resolve, 10))
+      await new Promise((resolve) => setTimeout(resolve, 10))
 
       const result2 = await useCase.execute(input)
 
@@ -843,10 +844,7 @@ describe('DeliverFeedbackUseCase', () => {
       await useCase.execute(input)
 
       // Assert
-      expect(markFeedbackDeliveredSpy).toHaveBeenCalledWith(
-        expect.any(Object),
-        undefined,
-      )
+      expect(markFeedbackDeliveredSpy).toHaveBeenCalledWith(expect.any(Object), undefined)
     })
 
     it('should track manager ID in delivery audit trail', async () => {

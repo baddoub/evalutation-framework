@@ -89,7 +89,9 @@ describe('EngineerLevel', () => {
 
     it('should throw InvalidEngineerLevelException for null/undefined', () => {
       expect(() => EngineerLevel.fromString(null as any)).toThrow(InvalidEngineerLevelException)
-      expect(() => EngineerLevel.fromString(undefined as any)).toThrow(InvalidEngineerLevelException)
+      expect(() => EngineerLevel.fromString(undefined as any)).toThrow(
+        InvalidEngineerLevelException,
+      )
     })
 
     it('should throw InvalidEngineerLevelException for invalid level', () => {
@@ -98,8 +100,9 @@ describe('EngineerLevel', () => {
     })
 
     it('should provide helpful error message with valid levels', () => {
-      expect(() => EngineerLevel.fromString('INVALID'))
-        .toThrow(/JUNIOR, MID, SENIOR, LEAD, MANAGER/)
+      expect(() => EngineerLevel.fromString('INVALID')).toThrow(
+        /JUNIOR, MID, SENIOR, LEAD, MANAGER/,
+      )
     })
   })
 

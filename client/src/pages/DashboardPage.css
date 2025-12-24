@@ -136,11 +136,22 @@
   padding: 20px;
   border-radius: 8px;
   border: 2px solid #eee;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.status-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .status-item.active {
   background: #f0fdf4;
   border-color: #86efac;
+}
+
+.status-item.active:hover {
+  border-color: #22c55e;
 }
 
 .status-item.pending {

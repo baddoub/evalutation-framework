@@ -36,9 +36,7 @@ export class GetManagerEvaluationUseCase {
     private readonly managerEvaluationRepository: IManagerEvaluationRepository,
   ) {}
 
-  async execute(
-    input: GetManagerEvaluationInput,
-  ): Promise<GetManagerEvaluationOutput | null> {
+  async execute(input: GetManagerEvaluationInput): Promise<GetManagerEvaluationOutput | null> {
     const evaluation = await this.managerEvaluationRepository.findByEmployeeAndCycle(
       input.employeeId,
       input.cycleId,

@@ -1,5 +1,5 @@
 export class UnauthorizedAccessException extends Error {
-  constructor(message: string = 'Unauthorized access') {
+  constructor(message = 'You are not authorized to access this resource') {
     super(message)
     this.name = 'UnauthorizedAccessException'
   }

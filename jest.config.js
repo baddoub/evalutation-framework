@@ -22,6 +22,9 @@ module.exports = {
       statements: 80,
     },
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(uuid)/)',
+  ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '^@auth/(.*)$': '<rootDir>/auth/$1',

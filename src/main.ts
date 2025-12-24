@@ -35,7 +35,9 @@ async function bootstrap() {
   // Swagger/OpenAPI documentation
   const config = new DocumentBuilder()
     .setTitle('Evaluation Framework API')
-    .setDescription('API documentation for the Evaluation Framework with Keycloak OAuth authentication')
+    .setDescription(
+      'API documentation for the Evaluation Framework with Keycloak OAuth authentication',
+    )
     .setVersion('1.0')
     .addTag('auth', 'Authentication endpoints')
     .addTag('health', 'Health check endpoints')

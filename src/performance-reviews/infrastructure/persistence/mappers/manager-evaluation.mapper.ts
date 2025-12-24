@@ -1,5 +1,8 @@
-import { ManagerEvaluation as PrismaManagerEvaluation } from '@prisma/client'
-import { ManagerEvaluation, ManagerEvaluationId } from '../../../domain/entities/manager-evaluation.entity'
+import type { ManagerEvaluation as PrismaManagerEvaluation } from '@prisma/client'
+import {
+  ManagerEvaluation,
+  ManagerEvaluationId,
+} from '../../../domain/entities/manager-evaluation.entity'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
 import { UserId } from '../../../../auth/domain/value-objects/user-id.vo'
 import { PillarScores } from '../../../domain/value-objects/pillar-scores.vo'
@@ -60,7 +63,9 @@ export class ManagerEvaluationMapper {
    * @param domain - ManagerEvaluation domain entity
    * @returns Prisma ManagerEvaluation data (without timestamps)
    */
-  static toPrisma(domain: ManagerEvaluation): Omit<PrismaManagerEvaluation, 'createdAt' | 'updatedAt' | 'deletedAt'> {
+  static toPrisma(
+    domain: ManagerEvaluation,
+  ): Omit<PrismaManagerEvaluation, 'createdAt' | 'updatedAt' | 'deletedAt'> {
     return {
       id: domain.id.value,
       cycleId: domain.cycleId.value,

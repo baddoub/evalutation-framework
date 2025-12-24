@@ -1,5 +1,5 @@
-import { PillarScores } from '../value-objects/pillar-scores.vo'
-import { EngineerLevel } from '../value-objects/engineer-level.vo'
+import type { PillarScores } from '../value-objects/pillar-scores.vo'
+import type { EngineerLevel } from '../value-objects/engineer-level.vo'
 import { WeightedScore } from '../value-objects/weighted-score.vo'
 
 export interface PillarWeights {
@@ -29,39 +29,39 @@ export class ScoreCalculationService {
    */
   private static readonly WEIGHTS_BY_LEVEL: Record<string, PillarWeights> = {
     JUNIOR: {
-      projectImpact: 0.20,        // Learning and contributing
-      direction: 0.10,            // Limited strategic responsibility
+      projectImpact: 0.2, // Learning and contributing
+      direction: 0.1, // Limited strategic responsibility
       engineeringExcellence: 0.25, // Technical growth and code quality
-      operationalOwnership: 0.20,  // Building good habits
-      peopleImpact: 0.25,         // Collaboration and learning from others
+      operationalOwnership: 0.2, // Building good habits
+      peopleImpact: 0.25, // Collaboration and learning from others
     },
     MID: {
-      projectImpact: 0.25,        // Growing impact
-      direction: 0.15,            // Beginning to influence direction
+      projectImpact: 0.25, // Growing impact
+      direction: 0.15, // Beginning to influence direction
       engineeringExcellence: 0.25, // Strong technical contribution
-      operationalOwnership: 0.20,  // More ownership
-      peopleImpact: 0.15,         // Mentoring juniors
+      operationalOwnership: 0.2, // More ownership
+      peopleImpact: 0.15, // Mentoring juniors
     },
     SENIOR: {
-      projectImpact: 0.30,        // Significant impact on projects
-      direction: 0.20,            // Influencing technical direction
-      engineeringExcellence: 0.20, // Expertise and best practices
-      operationalOwnership: 0.15,  // Systems thinking
-      peopleImpact: 0.15,         // Mentoring and leadership
+      projectImpact: 0.3, // Significant impact on projects
+      direction: 0.2, // Influencing technical direction
+      engineeringExcellence: 0.2, // Expertise and best practices
+      operationalOwnership: 0.15, // Systems thinking
+      peopleImpact: 0.15, // Mentoring and leadership
     },
     LEAD: {
-      projectImpact: 0.30,        // Strategic impact across teams
-      direction: 0.25,            // Leading technical direction
-      engineeringExcellence: 0.20, // Setting standards
-      operationalOwnership: 0.15,  // Process improvement
-      peopleImpact: 0.10,         // Enabling team growth
+      projectImpact: 0.3, // Strategic impact across teams
+      direction: 0.25, // Leading technical direction
+      engineeringExcellence: 0.2, // Setting standards
+      operationalOwnership: 0.15, // Process improvement
+      peopleImpact: 0.1, // Enabling team growth
     },
     MANAGER: {
-      projectImpact: 0.35,        // Impact through team delivery
-      direction: 0.25,            // Strategic planning
+      projectImpact: 0.35, // Impact through team delivery
+      direction: 0.25, // Strategic planning
       engineeringExcellence: 0.15, // Enabling excellence
-      operationalOwnership: 0.10,  // Process optimization
-      peopleImpact: 0.15,         // Team development and growth
+      operationalOwnership: 0.1, // Process optimization
+      peopleImpact: 0.15, // Team development and growth
     },
   }
 
@@ -71,12 +71,9 @@ export class ScoreCalculationService {
    * @param level - Engineer level
    * @returns Weighted score (0-4)
    */
-  calculateWeightedScore(
-    pillarScores: PillarScores,
-    level: EngineerLevel,
-  ): WeightedScore {
+  calculateWeightedScore(pillarScores: PillarScores, level: EngineerLevel): WeightedScore {
     const weights = this.getWeightsForLevel(level)
-    
+
     const weighted =
       pillarScores.projectImpact.value * weights.projectImpact +
       pillarScores.direction.value * weights.direction +

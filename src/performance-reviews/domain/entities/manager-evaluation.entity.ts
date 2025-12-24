@@ -1,10 +1,10 @@
-import { ReviewCycleId } from '../value-objects/review-cycle-id.vo'
-import { UserId } from '../../../auth/domain/value-objects/user-id.vo'
-import { PillarScores } from '../value-objects/pillar-scores.vo'
+import type { ReviewCycleId } from '../value-objects/review-cycle-id.vo'
+import type { UserId } from '../../../auth/domain/value-objects/user-id.vo'
+import type { PillarScores } from '../value-objects/pillar-scores.vo'
 import { ReviewStatus } from '../value-objects/review-status.vo'
 import { ManagerEvaluationAlreadySubmittedException } from '../exceptions/manager-evaluation-already-submitted.exception'
-import { Narrative } from '../value-objects/narrative.vo'
-import { EngineerLevel } from '../value-objects/engineer-level.vo'
+import type { Narrative } from '../value-objects/narrative.vo'
+import type { EngineerLevel } from '../value-objects/engineer-level.vo'
 import { ManagerEvaluationId } from '../value-objects/manager-evaluation-id.vo'
 
 // Re-export for convenience
@@ -137,7 +137,9 @@ export class ManagerEvaluation {
    */
   updatePerformanceNarrative(narrative: Narrative): void {
     if (this.isSubmitted) {
-      throw new ManagerEvaluationAlreadySubmittedException('Cannot update performance narrative after submission')
+      throw new ManagerEvaluationAlreadySubmittedException(
+        'Cannot update performance narrative after submission',
+      )
     }
     this._performanceNarrative = narrative.text
     this._updatedAt = new Date()
@@ -148,7 +150,9 @@ export class ManagerEvaluation {
    */
   updateGrowthAreas(growthAreas: Narrative): void {
     if (this.isSubmitted) {
-      throw new ManagerEvaluationAlreadySubmittedException('Cannot update growth areas after submission')
+      throw new ManagerEvaluationAlreadySubmittedException(
+        'Cannot update growth areas after submission',
+      )
     }
     this._growthAreas = growthAreas.text
     this._updatedAt = new Date()
@@ -159,7 +163,9 @@ export class ManagerEvaluation {
    */
   updateProposedLevel(level: EngineerLevel): void {
     if (this.isSubmitted) {
-      throw new ManagerEvaluationAlreadySubmittedException('Cannot update proposed level after submission')
+      throw new ManagerEvaluationAlreadySubmittedException(
+        'Cannot update proposed level after submission',
+      )
     }
     this._proposedLevel = level
     this._updatedAt = new Date()
@@ -223,7 +229,9 @@ export class ManagerEvaluation {
   }
 
   get isSubmitted(): boolean {
-    return this._status.equals(ReviewStatus.SUBMITTED) || this._status.equals(ReviewStatus.CALIBRATED)
+    return (
+      this._status.equals(ReviewStatus.SUBMITTED) || this._status.equals(ReviewStatus.CALIBRATED)
+    )
   }
 
   get isCalibrated(): boolean {

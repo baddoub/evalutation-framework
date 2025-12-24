@@ -86,7 +86,9 @@ describe('SelfReview', () => {
       })
 
       expect(() => selfReview.updateScores(newScores)).toThrow(SelfReviewAlreadySubmittedException)
-      expect(() => selfReview.updateScores(newScores)).toThrow('Cannot update scores after submission')
+      expect(() => selfReview.updateScores(newScores)).toThrow(
+        'Cannot update scores after submission',
+      )
     })
 
     it('should allow multiple updates while in DRAFT status', () => {
@@ -136,8 +138,12 @@ describe('SelfReview', () => {
 
       const newNarrative = Narrative.create('Updated narrative text')
 
-      expect(() => selfReview.updateNarrative(newNarrative)).toThrow(SelfReviewAlreadySubmittedException)
-      expect(() => selfReview.updateNarrative(newNarrative)).toThrow('Cannot update narrative after submission')
+      expect(() => selfReview.updateNarrative(newNarrative)).toThrow(
+        SelfReviewAlreadySubmittedException,
+      )
+      expect(() => selfReview.updateNarrative(newNarrative)).toThrow(
+        'Cannot update narrative after submission',
+      )
     })
 
     it('should allow multiple narrative updates while in DRAFT status', () => {
@@ -192,7 +198,9 @@ describe('SelfReview', () => {
       const newNarrative = Narrative.create('New narrative')
 
       expect(() => selfReview.updateScores(newScores)).toThrow(SelfReviewAlreadySubmittedException)
-      expect(() => selfReview.updateNarrative(newNarrative)).toThrow(SelfReviewAlreadySubmittedException)
+      expect(() => selfReview.updateNarrative(newNarrative)).toThrow(
+        SelfReviewAlreadySubmittedException,
+      )
     })
   })
 

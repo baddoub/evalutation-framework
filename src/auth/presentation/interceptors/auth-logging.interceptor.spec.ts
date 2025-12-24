@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing'
-import { ExecutionContext, CallHandler } from '@nestjs/common'
+import type { TestingModule } from '@nestjs/testing'
+import { Test } from '@nestjs/testing'
+import type { ExecutionContext, CallHandler } from '@nestjs/common'
 import { of, throwError } from 'rxjs'
 import { AuthLoggingInterceptor } from './auth-logging.interceptor'
 

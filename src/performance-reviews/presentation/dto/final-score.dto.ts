@@ -4,7 +4,7 @@ import { IsString, MaxLength } from 'class-validator'
 export class DeliverFeedbackRequestDto {
   @ApiProperty({
     example: 'Great work this year! Focus areas for next year include...',
-    maxLength: 5000
+    maxLength: 5000,
   })
   @IsString()
   @MaxLength(5000)
@@ -52,7 +52,7 @@ export class ScoreAdjustmentRequestDto {
 
   @ApiProperty({
     example: 'Score adjustment requested due to additional project completion',
-    maxLength: 1000
+    maxLength: 1000,
   })
   @IsString()
   @MaxLength(1000)
@@ -64,8 +64,8 @@ export class ScoreAdjustmentRequestDto {
       direction: 3,
       engineeringExcellence: 4,
       operationalOwnership: 3,
-      peopleImpact: 3
-    }
+      peopleImpact: 3,
+    },
   })
   proposedScores!: {
     projectImpact: number

@@ -197,7 +197,9 @@ describe('ReviewCycle', () => {
         cycle.enterCalibration()
 
         expect(() => cycle.start()).toThrow(InvalidReviewCycleStateException)
-        expect(() => cycle.start()).toThrow('Cannot start cycle from CALIBRATION status. Must be DRAFT')
+        expect(() => cycle.start()).toThrow(
+          'Cannot start cycle from CALIBRATION status. Must be DRAFT',
+        )
       })
 
       it('should throw error when starting from COMPLETED status', () => {
@@ -208,7 +210,9 @@ describe('ReviewCycle', () => {
         cycle.complete()
 
         expect(() => cycle.start()).toThrow(InvalidReviewCycleStateException)
-        expect(() => cycle.start()).toThrow('Cannot start cycle from COMPLETED status. Must be DRAFT')
+        expect(() => cycle.start()).toThrow(
+          'Cannot start cycle from COMPLETED status. Must be DRAFT',
+        )
       })
     })
 
@@ -256,7 +260,9 @@ describe('ReviewCycle', () => {
         const cycle = ReviewCycle.create(props)
 
         expect(() => cycle.enterCalibration()).toThrow(InvalidReviewCycleStateException)
-        expect(() => cycle.enterCalibration()).toThrow('Cannot enter calibration from DRAFT status. Must be ACTIVE')
+        expect(() => cycle.enterCalibration()).toThrow(
+          'Cannot enter calibration from DRAFT status. Must be ACTIVE',
+        )
       })
 
       it('should throw error when entering calibration from CALIBRATION status', () => {
@@ -266,7 +272,9 @@ describe('ReviewCycle', () => {
         cycle.enterCalibration()
 
         expect(() => cycle.enterCalibration()).toThrow(InvalidReviewCycleStateException)
-        expect(() => cycle.enterCalibration()).toThrow('Cannot enter calibration from CALIBRATION status. Must be ACTIVE')
+        expect(() => cycle.enterCalibration()).toThrow(
+          'Cannot enter calibration from CALIBRATION status. Must be ACTIVE',
+        )
       })
 
       it('should throw error when entering calibration from COMPLETED status', () => {
@@ -277,7 +285,9 @@ describe('ReviewCycle', () => {
         cycle.complete()
 
         expect(() => cycle.enterCalibration()).toThrow(InvalidReviewCycleStateException)
-        expect(() => cycle.enterCalibration()).toThrow('Cannot enter calibration from COMPLETED status. Must be ACTIVE')
+        expect(() => cycle.enterCalibration()).toThrow(
+          'Cannot enter calibration from COMPLETED status. Must be ACTIVE',
+        )
       })
     })
 
@@ -307,7 +317,9 @@ describe('ReviewCycle', () => {
         const cycle = ReviewCycle.create(props)
 
         expect(() => cycle.complete()).toThrow(InvalidReviewCycleStateException)
-        expect(() => cycle.complete()).toThrow('Cannot complete cycle from DRAFT status. Must be CALIBRATION')
+        expect(() => cycle.complete()).toThrow(
+          'Cannot complete cycle from DRAFT status. Must be CALIBRATION',
+        )
       })
 
       it('should throw error when completing from ACTIVE status', () => {
@@ -316,7 +328,9 @@ describe('ReviewCycle', () => {
         cycle.start()
 
         expect(() => cycle.complete()).toThrow(InvalidReviewCycleStateException)
-        expect(() => cycle.complete()).toThrow('Cannot complete cycle from ACTIVE status. Must be CALIBRATION')
+        expect(() => cycle.complete()).toThrow(
+          'Cannot complete cycle from ACTIVE status. Must be CALIBRATION',
+        )
       })
 
       it('should throw error when completing from COMPLETED status', () => {
@@ -327,7 +341,9 @@ describe('ReviewCycle', () => {
         cycle.complete()
 
         expect(() => cycle.complete()).toThrow(InvalidReviewCycleStateException)
-        expect(() => cycle.complete()).toThrow('Cannot complete cycle from COMPLETED status. Must be CALIBRATION')
+        expect(() => cycle.complete()).toThrow(
+          'Cannot complete cycle from COMPLETED status. Must be CALIBRATION',
+        )
       })
     })
 

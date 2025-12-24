@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { ICalibrationSessionRepository, CalibrationSession } from '../../../domain/repositories/calibration-session.repository.interface'
+import {
+  ICalibrationSessionRepository,
+  CalibrationSession,
+} from '../../../domain/repositories/calibration-session.repository.interface'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
 import { UserId } from '../../../../auth/domain/value-objects/user-id.vo'
 import { PrismaService } from '../../../../auth/infrastructure/persistence/prisma/prisma.service'
@@ -55,7 +58,10 @@ export class PrismaCalibrationSessionRepository implements ICalibrationSessionRe
    * @param department - Department name
    * @returns Array of CalibrationSession
    */
-  async findByDepartment(cycleId: ReviewCycleId, department: string): Promise<CalibrationSession[]> {
+  async findByDepartment(
+    cycleId: ReviewCycleId,
+    department: string,
+  ): Promise<CalibrationSession[]> {
     const prismaSessions = await this.prisma.calibrationSession.findMany({
       where: {
         cycleId: cycleId.value,

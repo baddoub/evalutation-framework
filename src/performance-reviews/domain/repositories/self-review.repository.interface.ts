@@ -1,7 +1,7 @@
-import { SelfReview } from '../entities/self-review.entity'
-import { SelfReviewId } from '../value-objects/self-review-id.vo'
-import { ReviewCycleId } from '../value-objects/review-cycle-id.vo'
-import { UserId } from '../../../auth/domain/value-objects/user-id.vo'
+import type { SelfReview } from '../entities/self-review.entity'
+import type { SelfReviewId } from '../value-objects/self-review-id.vo'
+import type { ReviewCycleId } from '../value-objects/review-cycle-id.vo'
+import type { UserId } from '../../../auth/domain/value-objects/user-id.vo'
 
 /**
  * ISelfReviewRepository Interface

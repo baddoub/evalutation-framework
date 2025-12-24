@@ -53,21 +53,25 @@ describe('PillarScores', () => {
     })
 
     it('should throw error when any score is invalid', () => {
-      expect(() => PillarScores.create({
-        projectImpact: 5, // Invalid
-        direction: 2,
-        engineeringExcellence: 3,
-        operationalOwnership: 2,
-        peopleImpact: 3,
-      })).toThrow()
+      expect(() =>
+        PillarScores.create({
+          projectImpact: 5, // Invalid
+          direction: 2,
+          engineeringExcellence: 3,
+          operationalOwnership: 2,
+          peopleImpact: 3,
+        }),
+      ).toThrow()
 
-      expect(() => PillarScores.create({
-        projectImpact: 2,
-        direction: -1, // Invalid
-        engineeringExcellence: 3,
-        operationalOwnership: 2,
-        peopleImpact: 3,
-      })).toThrow()
+      expect(() =>
+        PillarScores.create({
+          projectImpact: 2,
+          direction: -1, // Invalid
+          engineeringExcellence: 3,
+          operationalOwnership: 2,
+          peopleImpact: 3,
+        }),
+      ).toThrow()
     })
   })
 

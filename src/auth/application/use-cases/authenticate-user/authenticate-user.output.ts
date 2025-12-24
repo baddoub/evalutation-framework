@@ -4,7 +4,7 @@
  * Represents the authentication result returned to the client.
  */
 
-import { UserDto } from '../../dto/user.dto'
+import type { UserDto } from '../../dto/user.dto'
 
 export class AuthenticateUserOutput {
   constructor(

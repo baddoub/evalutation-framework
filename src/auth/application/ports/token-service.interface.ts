@@ -5,8 +5,8 @@
  * application-level JWT tokens (not Keycloak tokens).
  */
 
-import { UserId } from '../../domain/value-objects/user-id.vo'
-import { Role } from '../../domain/value-objects/role.vo'
+import type { UserId } from '../../domain/value-objects/user-id.vo'
+import type { Role } from '../../domain/value-objects/role.vo'
 
 export interface TokenPair {
   accessToken: string

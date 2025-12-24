@@ -1,8 +1,14 @@
 import { Injectable, Inject } from '@nestjs/common'
-import { ICalibrationSessionRepository, CalibrationSession } from '../../../domain/repositories/calibration-session.repository.interface'
+import {
+  ICalibrationSessionRepository,
+  CalibrationSession,
+} from '../../../domain/repositories/calibration-session.repository.interface'
 import { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
 import { ReviewNotFoundException } from '../../../domain/exceptions/review-not-found.exception'
-import { CreateCalibrationSessionInput, CreateCalibrationSessionOutput } from '../../dto/final-score.dto'
+import {
+  CreateCalibrationSessionInput,
+  CreateCalibrationSessionOutput,
+} from '../../dto/final-score.dto'
 
 @Injectable()
 export class CreateCalibrationSessionUseCase {
@@ -26,7 +32,7 @@ export class CreateCalibrationSessionUseCase {
       cycleId: input.cycleId,
       name: input.name,
       facilitatorId: input.facilitatorId,
-      participantIds: input.participantIds.map(id => id.value),
+      participantIds: input.participantIds.map((id) => id.value),
       scheduledAt: input.scheduledAt,
       status: 'SCHEDULED',
       department: input.department,

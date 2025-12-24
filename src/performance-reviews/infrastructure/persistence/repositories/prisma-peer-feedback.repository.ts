@@ -43,7 +43,10 @@ export class PrismaPeerFeedbackRepository implements IPeerFeedbackRepository {
    * @param cycleId - ReviewCycleId
    * @returns Array of PeerFeedback entities
    */
-  async findByRevieweeAndCycle(revieweeId: UserId, cycleId: ReviewCycleId): Promise<PeerFeedback[]> {
+  async findByRevieweeAndCycle(
+    revieweeId: UserId,
+    cycleId: ReviewCycleId,
+  ): Promise<PeerFeedback[]> {
     const prismaFeedbacks = await this.prisma.peerFeedback.findMany({
       where: {
         revieweeId: revieweeId.value,
@@ -62,8 +65,11 @@ export class PrismaPeerFeedbackRepository implements IPeerFeedbackRepository {
    * @param cycleId - ReviewCycleId
    * @returns Array of PeerFeedback entities
    */
-  async findByEmployeeAndCycle(employeeId: UserId, cycleId: ReviewCycleId): Promise<PeerFeedback[]> {
-    return this.findByRevieweeAndCycle(employeeId, cycleId);
+  async findByEmployeeAndCycle(
+    employeeId: UserId,
+    cycleId: ReviewCycleId,
+  ): Promise<PeerFeedback[]> {
+    return this.findByRevieweeAndCycle(employeeId, cycleId)
   }
 
   /**
@@ -72,7 +78,10 @@ export class PrismaPeerFeedbackRepository implements IPeerFeedbackRepository {
    * @param cycleId - ReviewCycleId
    * @returns Array of PeerFeedback entities
    */
-  async findByReviewerAndCycle(reviewerId: UserId, cycleId: ReviewCycleId): Promise<PeerFeedback[]> {
+  async findByReviewerAndCycle(
+    reviewerId: UserId,
+    cycleId: ReviewCycleId,
+  ): Promise<PeerFeedback[]> {
     const prismaFeedbacks = await this.prisma.peerFeedback.findMany({
       where: {
         reviewerId: reviewerId.value,

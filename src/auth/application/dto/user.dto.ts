@@ -5,7 +5,7 @@
  * It does not contain business logic - only data structure and mapping utilities.
  */
 
-import { User } from '../../domain/entities/user.entity'
+import type { User } from '../../domain/entities/user.entity'
 
 export class UserDto {
   constructor(

@@ -58,7 +58,7 @@ export class LoginUserUseCase {
         id: user.id.value,
         email: user.email.value,
         name: user.name,
-        roles: user.roles.map(r => r.value),
+        roles: user.roles.map((r) => r.value),
         isActive: user.isActive,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,

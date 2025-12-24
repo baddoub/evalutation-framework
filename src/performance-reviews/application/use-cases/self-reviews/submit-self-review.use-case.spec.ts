@@ -1,18 +1,18 @@
 import { SubmitSelfReviewUseCase } from './submit-self-review.use-case'
-import { ISelfReviewRepository } from '../../../domain/repositories/self-review.repository.interface'
-import { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
+import type { ISelfReviewRepository } from '../../../domain/repositories/self-review.repository.interface'
+import type { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
 import { ReviewNotFoundException } from '../../../domain/exceptions/review-not-found.exception'
 import { SelfReviewAlreadySubmittedException } from '../../../domain/exceptions/self-review-already-submitted.exception'
 import { SelfReview } from '../../../domain/entities/self-review.entity'
 import { ReviewCycle } from '../../../domain/entities/review-cycle.entity'
-import { SelfReviewId } from '../../../domain/value-objects/self-review-id.vo'
+import type { SelfReviewId } from '../../../domain/value-objects/self-review-id.vo'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
 import { UserId } from '../../../../auth/domain/value-objects/user-id.vo'
 import { PillarScores } from '../../../domain/value-objects/pillar-scores.vo'
 import { Narrative } from '../../../domain/value-objects/narrative.vo'
 import { ReviewStatus } from '../../../domain/value-objects/review-status.vo'
 import { CycleDeadlines } from '../../../domain/value-objects/cycle-deadlines.vo'
-import { SubmitSelfReviewInput, SubmitSelfReviewOutput } from '../../dto/self-review.dto'
+import type { SubmitSelfReviewInput, SubmitSelfReviewOutput } from '../../dto/self-review.dto'
 
 describe('SubmitSelfReviewUseCase', () => {
   let useCase: SubmitSelfReviewUseCase

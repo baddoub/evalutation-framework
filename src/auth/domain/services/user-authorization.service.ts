@@ -1,5 +1,5 @@
-import { User } from '../entities/user.entity'
-import { UserId } from '../value-objects/user-id.vo'
+import type { User } from '../entities/user.entity'
+import type { UserId } from '../value-objects/user-id.vo'
 import { Role } from '../value-objects/role.vo'
 
 /**

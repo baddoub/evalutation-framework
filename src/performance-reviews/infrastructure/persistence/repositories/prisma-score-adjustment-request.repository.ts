@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { IScoreAdjustmentRequestRepository, ScoreAdjustmentRequest } from '../../../domain/repositories/score-adjustment-request.repository.interface'
+import {
+  IScoreAdjustmentRequestRepository,
+  ScoreAdjustmentRequest,
+} from '../../../domain/repositories/score-adjustment-request.repository.interface'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
 import { UserId } from '../../../../auth/domain/value-objects/user-id.vo'
 import { PillarScores } from '../../../domain/value-objects/pillar-scores.vo'
@@ -55,7 +58,10 @@ export class PrismaScoreAdjustmentRequestRepository implements IScoreAdjustmentR
    * @param cycleId - ReviewCycleId
    * @returns Array of ScoreAdjustmentRequest
    */
-  async findByEmployee(employeeId: UserId, cycleId: ReviewCycleId): Promise<ScoreAdjustmentRequest[]> {
+  async findByEmployee(
+    employeeId: UserId,
+    cycleId: ReviewCycleId,
+  ): Promise<ScoreAdjustmentRequest[]> {
     const prismaRequests = await this.prisma.scoreAdjustmentRequest.findMany({
       where: {
         employeeId: employeeId.value,
@@ -140,19 +146,19 @@ export class PrismaScoreAdjustmentRequestRepository implements IScoreAdjustmentR
       reviewedAt: prisma.reviewedAt ?? undefined,
       rejectionReason: prisma.rejectionReason ?? undefined,
       approve(reviewedBy: string, _reviewNotes?: string): void {
-        request.status = 'APPROVED';
-        request.approverId = UserId.fromString(reviewedBy);
-        request.reviewedAt = new Date();
-        request.rejectionReason = undefined;
+        request.status = 'APPROVED'
+        request.approverId = UserId.fromString(reviewedBy)
+        request.reviewedAt = new Date()
+        request.rejectionReason = undefined
       },
       reject(reviewedBy: string, reviewNotes?: string): void {
-        request.status = 'REJECTED';
-        request.approverId = UserId.fromString(reviewedBy);
-        request.reviewedAt = new Date();
-        request.rejectionReason = reviewNotes;
+        request.status = 'REJECTED'
+        request.approverId = UserId.fromString(reviewedBy)
+        request.reviewedAt = new Date()
+        request.rejectionReason = reviewNotes
       },
     }
 
-    return request;
+    return request
   }
 }

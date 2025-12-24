@@ -4,176 +4,210 @@ import {
   Post,
   Body,
   Param,
+  Query,
+  HttpCode,
+  HttpStatus,
   UseGuards,
   UseFilters,
 } from '@nestjs/common'
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger'
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+  ApiParam,
+} from '@nestjs/swagger'
 import { JwtAuthGuard } from '../../../auth/presentation/guards/jwt-auth.guard'
 import { ReviewAuthorizationGuard } from '../guards/review-authorization.guard'
 import { ReviewExceptionFilter } from '../filters/review-exception.filter'
-import { CurrentUser, CurrentUserData } from '../decorators/current-user.decorator'
-import { Roles } from '../decorators/roles.decorator'
-import {
-  RecordCalibrationNoteRequestDto,
-  ApplyCalibrationAdjustmentRequestDto,
-  CalibrationSessionResponseDto,
-} from '../dto/calibration.dto'
-import { GetCalibrationSessionUseCase } from '../../application/use-cases/calibration/get-calibration-session.use-case'
-import { RecordCalibrationNoteUseCase } from '../../application/use-cases/calibration/record-calibration-note.use-case'
+import { RequiresReviewRole } from '../decorators/requires-review-role.decorator'
+import { CreateCalibrationSessionDto } from '../dto/requests/create-calibration-session.dto'
+import { ApplyCalibrationAdjustmentDto } from '../dto/requests/apply-calibration-adjustment.dto'
+import { GetCalibrationDashboardUseCase } from '../../application/use-cases/calibration/get-calibration-dashboard.use-case'
+import { CreateCalibrationSessionUseCase } from '../../application/use-cases/calibration/create-calibration-session.use-case'
 import { ApplyCalibrationAdjustmentUseCase } from '../../application/use-cases/calibration/apply-calibration-adjustment.use-case'
-import { LockCalibrationUseCase } from '../../application/use-cases/calibration/lock-calibration.use-case'
-import { CalibrationSessionId } from '../../domain/value-objects/calibration-session-id.vo'
+import { LockFinalScoresUseCase } from '../../application/use-cases/calibration/lock-final-scores.use-case'
+import { ReviewCycleId } from '../../domain/value-objects/review-cycle-id.vo'
 import { UserId } from '../../domain/value-objects/user-id.vo'
 
 @ApiTags('Calibration')
 @ApiBearerAuth()
-@Controller('performance-reviews/cycles/:cycleId/calibration')
+@Controller('performance-reviews/cycles/:cycleId')
 @UseGuards(JwtAuthGuard, ReviewAuthorizationGuard)
 @UseFilters(ReviewExceptionFilter)
 export class CalibrationController {
   constructor(
-    private readonly getCalibrationSessionUseCase: GetCalibrationSessionUseCase,
-    private readonly recordCalibrationNoteUseCase: RecordCalibrationNoteUseCase,
+    private readonly getCalibrationDashboardUseCase: GetCalibrationDashboardUseCase,
+    private readonly createCalibrationSessionUseCase: CreateCalibrationSessionUseCase,
     private readonly applyCalibrationAdjustmentUseCase: ApplyCalibrationAdjustmentUseCase,
-    private readonly lockCalibrationUseCase: LockCalibrationUseCase,
+    private readonly lockFinalScoresUseCase: LockFinalScoresUseCase,
   ) {}
 
-  @Get('sessions/:sessionId')
-  @Roles('MANAGER', 'HR_ADMIN')
-  @ApiOperation({ summary: 'Get calibration session' })
+  @Get('calibration')
+  @RequiresReviewRole('CALIBRATOR', 'HR_ADMIN')
+  @ApiParam({ name: 'cycleId', description: 'Review cycle ID', example: 'cycle-uuid-123' })
+  @ApiQuery({
+    name: 'department',
+    required: false,
+    type: String,
+    description: 'Filter by department',
+    example: 'Engineering',
+  })
+  @ApiOperation({
+    summary: 'Get calibration dashboard (Calibrator/HR_ADMIN)',
+    description:
+      'View all evaluations with scores, bonus tiers, and distribution for calibration purposes',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Calibration session retrieved successfully',
-    type: CalibrationSessionResponseDto,
+    description: 'Calibration dashboard retrieved successfully',
   })
-  @ApiResponse({ status: 404, description: 'Calibration session not found' })
-  async getCalibrationSession(
-    @Param('sessionId') sessionId: string,
-  ): Promise<CalibrationSessionResponseDto> {
-    const result = await this.getCalibrationSessionUseCase.execute(
-      CalibrationSessionId.fromString(sessionId),
-    )
-
-    if (!result) {
-      throw new Error('Calibration session not found')
-    }
-
-    return {
-      id: result.id,
-      cycleId: result.cycleId,
-      department: result.department,
-      status: result.status as any,
-      notes: result.notes,
-      lockedAt: result.lockedAt ? result.lockedAt.toISOString() : null,
-      lockedBy: result.lockedBy || null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-  }
-
-  @Post('sessions/:sessionId/notes')
-  @Roles('MANAGER', 'HR_ADMIN')
-  @ApiOperation({ summary: 'Record calibration notes' })
-  @ApiResponse({
-    status: 200,
-    description: 'Calibration notes recorded successfully',
-    type: CalibrationSessionResponseDto,
-  })
-  @ApiResponse({ status: 404, description: 'Calibration session not found' })
-  async recordCalibrationNote(
-    @Param('sessionId') sessionId: string,
-    @CurrentUser() user: CurrentUserData,
-    @Body() dto: RecordCalibrationNoteRequestDto,
-  ): Promise<CalibrationSessionResponseDto> {
-    const result = await this.recordCalibrationNoteUseCase.execute({
-      sessionId: CalibrationSessionId.fromString(sessionId),
-      notes: dto.notes,
-      recordedBy: UserId.fromString(user.userId),
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - Calibrator or HR Admin only' })
+  async getCalibrationDashboard(
+    @Param('cycleId') cycleId: string,
+    @Query('department') department?: string,
+  ) {
+    const result = await this.getCalibrationDashboardUseCase.execute({
+      cycleId: ReviewCycleId.fromString(cycleId),
+      department,
     })
 
-    if (!result) {
-      throw new Error('Calibration session not found')
-    }
-
     return {
-      id: result.id,
-      cycleId: result.cycleId,
-      department: result.department,
-      status: result.status as any,
-      notes: result.notes,
-      lockedAt: result.lockedAt ? result.lockedAt.toISOString() : null,
-      lockedBy: result.lockedBy || null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      summary: {
+        totalEvaluations: result.summary.totalEvaluations,
+        byBonusTier: result.summary.byBonusTier,
+        byDepartment: result.summary.byDepartment,
+      },
+      evaluations: result.evaluations.map((evaluation) => ({
+        employeeId: evaluation.employeeId,
+        employeeName: evaluation.employeeName,
+        level: evaluation.level,
+        department: evaluation.department,
+        managerId: evaluation.managerId,
+        managerName: evaluation.managerName,
+        scores: evaluation.scores,
+        weightedScore: evaluation.weightedScore,
+        percentageScore: evaluation.percentageScore,
+        bonusTier: evaluation.bonusTier,
+        calibrationStatus: evaluation.calibrationStatus,
+      })),
     }
   }
 
-  @Post('sessions/:sessionId/adjustments/:evaluationId')
-  @Roles('MANAGER', 'HR_ADMIN')
-  @ApiOperation({ summary: 'Apply calibration adjustment to manager evaluation' })
+  @Post('calibration/sessions')
+  @RequiresReviewRole('CALIBRATOR', 'HR_ADMIN')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiParam({ name: 'cycleId', description: 'Review cycle ID', example: 'cycle-uuid-123' })
+  @ApiOperation({
+    summary: 'Create calibration session',
+    description:
+      'Schedule a calibration session with participants to review and normalize performance scores',
+  })
   @ApiResponse({
-    status: 200,
+    status: 201,
+    description: 'Calibration session created successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - Calibrator or HR Admin only' })
+  @ApiResponse({ status: 400, description: 'Validation failed' })
+  async createCalibrationSession(
+    @Param('cycleId') cycleId: string,
+    @Body() dto: CreateCalibrationSessionDto,
+  ) {
+    const result = await this.createCalibrationSessionUseCase.execute({
+      cycleId: ReviewCycleId.fromString(cycleId),
+      name: dto.name,
+      department: dto.department,
+      facilitatorId: UserId.fromString(dto.facilitatorId),
+      participantIds: dto.participantIds.map((id) => UserId.fromString(id)),
+      scheduledAt: new Date(dto.scheduledAt),
+    })
+
+    return {
+      id: result.id,
+      name: result.name,
+      status: result.status,
+      scheduledAt: result.scheduledAt.toISOString(),
+      participantCount: dto.participantIds.length,
+    }
+  }
+
+  @Post('calibration/sessions/:sessionId/adjustments')
+  @RequiresReviewRole('CALIBRATOR', 'HR_ADMIN')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiParam({ name: 'cycleId', description: 'Review cycle ID', example: 'cycle-uuid-123' })
+  @ApiParam({
+    name: 'sessionId',
+    description: 'Calibration session ID',
+    example: 'session-uuid-789',
+  })
+  @ApiOperation({
+    summary: 'Apply calibration adjustment',
+    description: "Adjust an employee's scores during calibration session with justification",
+  })
+  @ApiResponse({
+    status: 201,
     description: 'Calibration adjustment applied successfully',
   })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - Calibrator or HR Admin only' })
   @ApiResponse({ status: 404, description: 'Session or evaluation not found' })
-  @ApiResponse({ status: 400, description: 'Session is locked' })
+  @ApiResponse({ status: 400, description: 'Validation failed' })
   async applyCalibrationAdjustment(
     @Param('sessionId') sessionId: string,
-    @Param('evaluationId') evaluationId: string,
-    @Body() dto: ApplyCalibrationAdjustmentRequestDto,
-  ): Promise<{ id: string; message: string }> {
+    @Body() dto: ApplyCalibrationAdjustmentDto,
+  ) {
     const result = await this.applyCalibrationAdjustmentUseCase.execute({
       sessionId,
-      evaluationId,
+      evaluationId: dto.evaluationId,
       adjustedScores: {
-        projectImpact: dto.projectImpact,
-        direction: dto.direction,
-        engineeringExcellence: dto.engineeringExcellence,
-        operationalOwnership: dto.operationalOwnership,
-        peopleImpact: dto.peopleImpact,
+        projectImpact: dto.adjustedScores.projectImpact,
+        direction: dto.adjustedScores.direction,
+        engineeringExcellence: dto.adjustedScores.engineeringExcellence,
+        operationalOwnership: dto.adjustedScores.operationalOwnership,
+        peopleImpact: dto.adjustedScores.peopleImpact,
       },
-      justification: dto.reason,
+      justification: dto.justification,
     })
 
     return {
       id: result.adjustmentId,
-      message: 'Calibration adjustment applied successfully',
+      evaluationId: dto.evaluationId,
+      originalScores: result.originalScores,
+      adjustedScores: dto.adjustedScores,
+      oldWeightedScore: result.oldWeightedScore,
+      newWeightedScore: result.newWeightedScore,
+      oldBonusTier: result.oldBonusTier,
+      newBonusTier: result.newBonusTier,
+      adjustedAt: new Date().toISOString(),
     }
   }
 
-  @Post('sessions/:sessionId/lock')
-  @Roles('HR_ADMIN')
-  @ApiOperation({ summary: 'Lock calibration session' })
+  @Post('scores/lock')
+  @RequiresReviewRole('HR_ADMIN')
+  @HttpCode(HttpStatus.OK)
+  @ApiParam({ name: 'cycleId', description: 'Review cycle ID', example: 'cycle-uuid-123' })
+  @ApiOperation({
+    summary: 'Lock final scores (HR_ADMIN only)',
+    description: 'Lock all final scores after calibration, preventing further changes',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Calibration session locked successfully',
-    type: CalibrationSessionResponseDto,
+    description: 'Final scores locked successfully',
   })
-  @ApiResponse({ status: 404, description: 'Calibration session not found' })
-  @ApiResponse({ status: 400, description: 'Session already locked' })
-  async lockCalibration(
-    @Param('sessionId') sessionId: string,
-    @CurrentUser() user: CurrentUserData,
-  ): Promise<CalibrationSessionResponseDto> {
-    const result = await this.lockCalibrationUseCase.execute({
-      sessionId: CalibrationSessionId.fromString(sessionId),
-      lockedBy: UserId.fromString(user.userId),
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - HR Admin only' })
+  async lockFinalScores(@Param('cycleId') cycleId: string) {
+    const result = await this.lockFinalScoresUseCase.execute({
+      cycleId: ReviewCycleId.fromString(cycleId),
     })
 
-    if (!result) {
-      throw new Error('Calibration session not found')
-    }
-
     return {
-      id: result.id,
-      cycleId: result.cycleId,
-      department: result.department,
-      status: result.status as any,
-      notes: result.notes,
-      lockedAt: result.lockedAt ? result.lockedAt.toISOString() : null,
-      lockedBy: result.lockedBy || null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      cycleId,
+      totalScoresLocked: result.totalScoresLocked,
+      lockedAt: result.lockedAt.toISOString(),
     }
   }
 }

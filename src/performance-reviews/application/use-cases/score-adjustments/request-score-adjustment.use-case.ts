@@ -1,10 +1,16 @@
 import { Injectable, Inject } from '@nestjs/common'
-import { IScoreAdjustmentRequestRepository, ScoreAdjustmentRequest } from '../../../domain/repositories/score-adjustment-request.repository.interface'
+import {
+  IScoreAdjustmentRequestRepository,
+  ScoreAdjustmentRequest,
+} from '../../../domain/repositories/score-adjustment-request.repository.interface'
 import { IFinalScoreRepository } from '../../../domain/repositories/final-score.repository.interface'
 import { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
 import { IUserRepository } from '../../../../auth/domain/repositories/user.repository.interface'
 import { ReviewNotFoundException } from '../../../domain/exceptions/review-not-found.exception'
-import { RequestScoreAdjustmentInput, RequestScoreAdjustmentOutput } from '../../dto/final-score.dto'
+import {
+  RequestScoreAdjustmentInput,
+  RequestScoreAdjustmentOutput,
+} from '../../dto/final-score.dto'
 import { PillarScores } from '../../../domain/value-objects/pillar-scores.vo'
 
 @Injectable()

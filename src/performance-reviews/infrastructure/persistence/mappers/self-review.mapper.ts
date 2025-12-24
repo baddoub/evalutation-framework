@@ -1,4 +1,4 @@
-import { SelfReview as PrismaSelfReview } from '@prisma/client'
+import type { SelfReview as PrismaSelfReview } from '@prisma/client'
 import { SelfReview } from '../../../domain/entities/self-review.entity'
 import { SelfReviewId } from '../../../domain/value-objects/self-review-id.vo'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
@@ -57,7 +57,9 @@ export class SelfReviewMapper {
    * @param domain - SelfReview domain entity
    * @returns Prisma SelfReview data (without timestamps)
    */
-  static toPrisma(domain: SelfReview): Omit<PrismaSelfReview, 'createdAt' | 'updatedAt' | 'deletedAt'> {
+  static toPrisma(
+    domain: SelfReview,
+  ): Omit<PrismaSelfReview, 'createdAt' | 'updatedAt' | 'deletedAt'> {
     return {
       id: domain.id.value,
       cycleId: domain.cycleId.value,

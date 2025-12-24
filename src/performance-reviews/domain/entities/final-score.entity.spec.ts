@@ -232,8 +232,12 @@ describe('FinalScore', () => {
       })
       const newWeightedScore = WeightedScore.fromValue(4.0)
 
-      expect(() => finalScore.updateScores(newPillarScores, newWeightedScore)).toThrow(FinalScoreLockedException)
-      expect(() => finalScore.updateScores(newPillarScores, newWeightedScore)).toThrow('Cannot update scores when final score is locked')
+      expect(() => finalScore.updateScores(newPillarScores, newWeightedScore)).toThrow(
+        FinalScoreLockedException,
+      )
+      expect(() => finalScore.updateScores(newPillarScores, newWeightedScore)).toThrow(
+        'Cannot update scores when final score is locked',
+      )
     })
 
     it('should allow updates after unlocking', () => {
@@ -309,7 +313,9 @@ describe('FinalScore', () => {
 
       expect(finalScore.feedbackDelivered).toBe(true)
       expect(finalScore.feedbackDeliveredAt).toBeDefined()
-      expect(finalScore.feedbackDeliveredAt!.getTime()).toBeGreaterThanOrEqual(beforeDelivery.getTime())
+      expect(finalScore.feedbackDeliveredAt!.getTime()).toBeGreaterThanOrEqual(
+        beforeDelivery.getTime(),
+      )
       expect(finalScore.feedbackDeliveredAt!.getTime()).toBeLessThanOrEqual(afterDelivery.getTime())
       expect(finalScore.deliveredAt).toBeDefined()
       expect(finalScore.deliveredBy).toBe(deliveredBy)
@@ -356,7 +362,9 @@ describe('FinalScore', () => {
       expect(finalScore.feedbackDelivered).toBe(true)
       expect(finalScore.deliveredBy).toBe(deliveredBy2)
       expect(finalScore.feedbackNotes).toBe('Second delivery')
-      expect(finalScore.feedbackDeliveredAt!.getTime()).toBeGreaterThanOrEqual(firstDeliveryAt!.getTime())
+      expect(finalScore.feedbackDeliveredAt!.getTime()).toBeGreaterThanOrEqual(
+        firstDeliveryAt!.getTime(),
+      )
     })
   })
 
@@ -692,7 +700,9 @@ describe('FinalScore', () => {
       })
       const newWeighted = WeightedScore.fromValue(4.0)
 
-      expect(() => finalScore.updateScores(newScores, newWeighted)).toThrow(FinalScoreLockedException)
+      expect(() => finalScore.updateScores(newScores, newWeighted)).toThrow(
+        FinalScoreLockedException,
+      )
 
       // Verify scores remain unchanged
       expect(finalScore.pillarScores).toBe(originalScores)

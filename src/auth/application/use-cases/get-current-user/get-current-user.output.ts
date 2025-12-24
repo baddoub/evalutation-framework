@@ -4,7 +4,7 @@
  * Represents the user information returned to the client.
  */
 
-import { UserDto } from '../../dto/user.dto'
+import type { UserDto } from '../../dto/user.dto'
 
 export class GetCurrentUserOutput {
   constructor(public readonly user: UserDto) {}

@@ -2,9 +2,9 @@
  * Self Review DTOs
  */
 
-import { UserId } from '../../../auth/domain/value-objects/user-id.vo'
-import { ReviewCycleId } from '../../domain/value-objects/review-cycle-id.vo'
-import { Narrative } from '../../domain/value-objects/narrative.vo'
+import type { UserId } from '../../../auth/domain/value-objects/user-id.vo'
+import type { ReviewCycleId } from '../../domain/value-objects/review-cycle-id.vo'
+import type { Narrative } from '../../domain/value-objects/narrative.vo'
 
 export interface SelfReviewDto {
   id: string

@@ -22,7 +22,9 @@ export class WeightedScore {
       throw new InvalidWeightedScoreException(`Weighted score must be a valid number, got ${value}`)
     }
     if (value < 0 || value > 4) {
-      throw new InvalidWeightedScoreException(`Weighted score must be between 0 and 4, got ${value}`)
+      throw new InvalidWeightedScoreException(
+        `Weighted score must be between 0 and 4, got ${value}`,
+      )
     }
     this._value = value
   }

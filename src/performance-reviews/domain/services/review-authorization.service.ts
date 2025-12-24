@@ -1,7 +1,7 @@
-import { UserId } from '../../../auth/domain/value-objects/user-id.vo'
-import { Role } from '../../../auth/domain/value-objects/role.vo'
-import { SelfReview } from '../entities/self-review.entity'
-import { ManagerEvaluation } from '../entities/manager-evaluation.entity'
+import type { UserId } from '../../../auth/domain/value-objects/user-id.vo'
+import type { Role } from '../../../auth/domain/value-objects/role.vo'
+import type { SelfReview } from '../entities/self-review.entity'
+import type { ManagerEvaluation } from '../entities/manager-evaluation.entity'
 
 export interface AuthorizedUser {
   id: UserId
@@ -45,7 +45,7 @@ export class ReviewAuthorizationService {
     // This would typically require querying the user repository to check if
     // the review's userId has the current user as their manager
     // For now, return false (this logic would be in the application layer)
-    
+
     return false
   }
 
@@ -56,7 +56,11 @@ export class ReviewAuthorizationService {
    * - Cannot review direct manager
    * - Must be nominated (checked in application layer)
    */
-  canSubmitPeerFeedback(reviewerId: UserId, revieweeId: UserId, revieweeManagerId?: UserId): boolean {
+  canSubmitPeerFeedback(
+    reviewerId: UserId,
+    revieweeId: UserId,
+    revieweeManagerId?: UserId,
+  ): boolean {
     // Cannot review self
     if (revieweeId.equals(reviewerId)) {
       return false
@@ -151,5 +155,4 @@ export class ReviewAuthorizationService {
   private hasRole(user: AuthorizedUser, roleName: string): boolean {
     return user.roles.some((role) => role.value === roleName)
   }
-
 }

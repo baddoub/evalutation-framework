@@ -1,7 +1,7 @@
 import { GetMyFinalScoreUseCase } from './get-my-final-score.use-case'
-import { IFinalScoreRepository } from '../../../domain/repositories/final-score.repository.interface'
-import { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
-import { IUserRepository } from '../../../../auth/domain/repositories/user.repository.interface'
+import type { IFinalScoreRepository } from '../../../domain/repositories/final-score.repository.interface'
+import type { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
+import type { IUserRepository } from '../../../../auth/domain/repositories/user.repository.interface'
 import { FinalScore } from '../../../domain/entities/final-score.entity'
 import { ReviewCycle } from '../../../domain/entities/review-cycle.entity'
 import { User } from '../../../../auth/domain/entities/user.entity'
@@ -14,7 +14,7 @@ import { ReviewNotFoundException } from '../../../domain/exceptions/review-not-f
 import { CycleDeadlines } from '../../../domain/value-objects/cycle-deadlines.vo'
 import { Email } from '../../../../auth/domain/value-objects/email.vo'
 import { Role } from '../../../../auth/domain/value-objects/role.vo'
-import { GetMyFinalScoreInput, GetMyFinalScoreOutput } from '../../dto/final-score.dto'
+import type { GetMyFinalScoreInput, GetMyFinalScoreOutput } from '../../dto/final-score.dto'
 
 describe('GetMyFinalScoreUseCase', () => {
   let useCase: GetMyFinalScoreUseCase
@@ -129,7 +129,7 @@ describe('GetMyFinalScoreUseCase', () => {
   })
 
   describe('execute', () => {
-    describe('CRITICAL: Should retrieve employee\'s own final score', () => {
+    describe("CRITICAL: Should retrieve employee's own final score", () => {
       it('should return existing final score with all data populated', async () => {
         // Arrange
         const input = createValidInput()
@@ -219,7 +219,10 @@ describe('GetMyFinalScoreUseCase', () => {
         await useCase.execute(input)
 
         // Assert
-        expect(finalScoreRepository.findByUserAndCycle).toHaveBeenCalledWith(input.userId, input.cycleId)
+        expect(finalScoreRepository.findByUserAndCycle).toHaveBeenCalledWith(
+          input.userId,
+          input.cycleId,
+        )
         expect(finalScoreRepository.findByUserAndCycle).toHaveBeenCalledTimes(1)
       })
     })

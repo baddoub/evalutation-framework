@@ -324,7 +324,7 @@ describe('ScoreCalculationService', () => {
         expect(weights.projectImpact).toBe(0.35)
         expect(weights.direction).toBe(0.25)
         expect(weights.engineeringExcellence).toBe(0.15)
-        expect(weights.operationalOwnership).toBe(0.10)
+        expect(weights.operationalOwnership).toBe(0.1)
         expect(weights.peopleImpact).toBe(0.15)
       })
     })
@@ -340,22 +340,10 @@ describe('ScoreCalculationService', () => {
         peopleImpact: 2,
       })
 
-      const juniorScore = service.calculateWeightedScore(
-        scores,
-        EngineerLevel.fromString('JUNIOR'),
-      )
-      const midScore = service.calculateWeightedScore(
-        scores,
-        EngineerLevel.fromString('MID'),
-      )
-      const seniorScore = service.calculateWeightedScore(
-        scores,
-        EngineerLevel.fromString('SENIOR'),
-      )
-      const leadScore = service.calculateWeightedScore(
-        scores,
-        EngineerLevel.fromString('LEAD'),
-      )
+      const juniorScore = service.calculateWeightedScore(scores, EngineerLevel.fromString('JUNIOR'))
+      const midScore = service.calculateWeightedScore(scores, EngineerLevel.fromString('MID'))
+      const seniorScore = service.calculateWeightedScore(scores, EngineerLevel.fromString('SENIOR'))
+      const leadScore = service.calculateWeightedScore(scores, EngineerLevel.fromString('LEAD'))
       const managerScore = service.calculateWeightedScore(
         scores,
         EngineerLevel.fromString('MANAGER'),

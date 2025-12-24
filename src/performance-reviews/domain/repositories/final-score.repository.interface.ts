@@ -1,7 +1,7 @@
-import { FinalScore, FinalScoreId } from '../entities/final-score.entity'
-import { ReviewCycleId } from '../value-objects/review-cycle-id.vo'
-import { UserId } from '../../../auth/domain/value-objects/user-id.vo'
-import { BonusTier } from '../value-objects/bonus-tier.vo'
+import type { FinalScore, FinalScoreId } from '../entities/final-score.entity'
+import type { ReviewCycleId } from '../value-objects/review-cycle-id.vo'
+import type { UserId } from '../../../auth/domain/value-objects/user-id.vo'
+import type { BonusTier } from '../value-objects/bonus-tier.vo'
 
 /**
  * IFinalScoreRepository Interface

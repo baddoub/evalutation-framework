@@ -1,6 +1,6 @@
 import { GetMySelfReviewUseCase } from './get-my-self-review.use-case'
-import { ISelfReviewRepository } from '../../../domain/repositories/self-review.repository.interface'
-import { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
+import type { ISelfReviewRepository } from '../../../domain/repositories/self-review.repository.interface'
+import type { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
 import { SelfReview } from '../../../domain/entities/self-review.entity'
 import { ReviewCycle } from '../../../domain/entities/review-cycle.entity'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
@@ -10,7 +10,7 @@ import { Narrative } from '../../../domain/value-objects/narrative.vo'
 import { ReviewStatus } from '../../../domain/value-objects/review-status.vo'
 import { ReviewNotFoundException } from '../../../domain/exceptions/review-not-found.exception'
 import { CycleDeadlines } from '../../../domain/value-objects/cycle-deadlines.vo'
-import { GetMySelfReviewInput, GetMySelfReviewOutput } from '../../dto/self-review.dto'
+import type { GetMySelfReviewInput, GetMySelfReviewOutput } from '../../dto/self-review.dto'
 
 describe('GetMySelfReviewUseCase', () => {
   let useCase: GetMySelfReviewUseCase
@@ -40,10 +40,7 @@ describe('GetMySelfReviewUseCase', () => {
     })
   }
 
-  const createValidSelfReview = (
-    cycleId: ReviewCycleId,
-    userId: UserId,
-  ): SelfReview => {
+  const createValidSelfReview = (cycleId: ReviewCycleId, userId: UserId): SelfReview => {
     return SelfReview.create({
       cycleId,
       userId,

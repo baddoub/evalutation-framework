@@ -1,5 +1,5 @@
-import { ReviewCycle } from '../entities/review-cycle.entity'
-import { ReviewCycleId } from '../value-objects/review-cycle-id.vo'
+import type { ReviewCycle } from '../entities/review-cycle.entity'
+import type { ReviewCycleId } from '../value-objects/review-cycle-id.vo'
 
 /**
  * IReviewCycleRepository Interface

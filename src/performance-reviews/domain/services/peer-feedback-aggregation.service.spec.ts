@@ -12,17 +12,20 @@ describe('PeerFeedbackAggregationService', () => {
     service = new PeerFeedbackAggregationService()
   })
 
-  const createFeedback = (scores: {
-    projectImpact: number
-    direction: number
-    engineeringExcellence: number
-    operationalOwnership: number
-    peopleImpact: number
-  }, comments?: {
-    strengths?: string
-    growthAreas?: string
-    generalComments?: string
-  }) => {
+  const createFeedback = (
+    scores: {
+      projectImpact: number
+      direction: number
+      engineeringExcellence: number
+      operationalOwnership: number
+      peopleImpact: number
+    },
+    comments?: {
+      strengths?: string
+      growthAreas?: string
+      generalComments?: string
+    },
+  ) => {
     return PeerFeedback.create({
       cycleId: ReviewCycleId.generate(),
       revieweeId: UserId.generate(),
@@ -173,15 +176,11 @@ describe('PeerFeedbackAggregationService', () => {
     })
 
     it('should throw error for null feedbacks', () => {
-      expect(() => service.aggregatePeerScores(null as any)).toThrow(
-        NoPeerFeedbackException,
-      )
+      expect(() => service.aggregatePeerScores(null as any)).toThrow(NoPeerFeedbackException)
     })
 
     it('should throw error for undefined feedbacks', () => {
-      expect(() => service.aggregatePeerScores(undefined as any)).toThrow(
-        NoPeerFeedbackException,
-      )
+      expect(() => service.aggregatePeerScores(undefined as any)).toThrow(NoPeerFeedbackException)
     })
   })
 
@@ -207,9 +206,7 @@ describe('PeerFeedbackAggregationService', () => {
       expect(result.feedbackCount).toBe(1)
       expect(result.averageScores.projectImpact.value).toBe(3)
       expect(result.anonymizedComments.strengths).toEqual(['Great coding skills'])
-      expect(result.anonymizedComments.growthAreas).toEqual([
-        'Needs to improve communication',
-      ])
+      expect(result.anonymizedComments.growthAreas).toEqual(['Needs to improve communication'])
       expect(result.anonymizedComments.general).toEqual(['Overall performing well'])
       expect(result.projectImpact).toBe(3)
       expect(result.comments).toHaveLength(3)
@@ -341,9 +338,7 @@ describe('PeerFeedbackAggregationService', () => {
     })
 
     it('should throw error for null feedbacks', () => {
-      expect(() => service.anonymizeFeedback(null as any)).toThrow(
-        NoPeerFeedbackException,
-      )
+      expect(() => service.anonymizeFeedback(null as any)).toThrow(NoPeerFeedbackException)
     })
   })
 

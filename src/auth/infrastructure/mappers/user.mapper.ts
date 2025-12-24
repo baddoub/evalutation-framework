@@ -1,4 +1,4 @@
-import { User as PrismaUser } from '@prisma/client'
+import type { User as PrismaUser } from '@prisma/client'
 import { User } from '../../domain/entities/user.entity'
 import { Email } from '../../domain/value-objects/email.vo'
 import { UserId } from '../../domain/value-objects/user-id.vo'

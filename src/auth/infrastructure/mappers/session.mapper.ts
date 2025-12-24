@@ -1,4 +1,4 @@
-import { Session as PrismaSession } from '@prisma/client'
+import type { Session as PrismaSession } from '@prisma/client'
 import { Session } from '../../domain/entities/session.entity'
 import { UserId } from '../../domain/value-objects/user-id.vo'
 

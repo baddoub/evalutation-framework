@@ -2,28 +2,45 @@ import {
   registerDecorator,
   ValidationOptions,
   ValidationArguments,
-} from 'class-validator';
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+} from 'class-validator'
+
+@ValidatorConstraint({ name: 'MaxWords', async: false })
+export class MaxWordsConstraint implements ValidatorConstraintInterface {
+  validate(text: string, args: ValidationArguments): boolean {
+    const [maxWords] = args.constraints
+    if (!text) {
+      return true // Let @IsString() or @IsNotEmpty() handle empty strings
+    }
+
+    const wordCount = this.countWords(text)
+    return wordCount <= maxWords
+  }
+
+  defaultMessage(args: ValidationArguments): string {
+    const [maxWords] = args.constraints
+    const text = args.value as string
+    const wordCount = this.countWords(text)
+    return `Narrative exceeds ${maxWords} word limit (current: ${wordCount} words)`
+  }
+
+  private countWords(text: string): number {
+    return text
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0).length
+  }
+}
 
 export function MaxWords(maxWords: number, validationOptions?: ValidationOptions) {
   return function (object: object, propertyName: string) {
     registerDecorator({
-      name: 'maxWords',
       target: object.constructor,
-      propertyName: propertyName,
-      constraints: [maxWords],
+      propertyName,
       options: validationOptions,
-      validator: {
-        validate(value: any, args: ValidationArguments) {
-          if (typeof value !== 'string') {
-            return false;
-          }
-          const wordCount = value.trim().split(/\s+/).filter(word => word.length > 0).length;
-          return wordCount <= args.constraints[0];
-        },
-        defaultMessage(args: ValidationArguments) {
-          return `${args.property} must not exceed ${args.constraints[0]} words`;
-        },
-      },
-    });
-  };
+      constraints: [maxWords],
+      validator: MaxWordsConstraint,
+    })
+  }
 }

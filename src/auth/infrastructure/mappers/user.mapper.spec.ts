@@ -3,7 +3,7 @@ import { User } from '../../domain/entities/user.entity'
 import { Email } from '../../domain/value-objects/email.vo'
 import { UserId } from '../../domain/value-objects/user-id.vo'
 import { Role } from '../../domain/value-objects/role.vo'
-import { User as PrismaUser } from '@prisma/client'
+import type { User as PrismaUser } from '@prisma/client'
 
 describe('UserMapper', () => {
   const testUuid = '123e4567-e89b-42d3-a456-426614174000' // Valid UUID v4

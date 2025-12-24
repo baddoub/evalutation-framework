@@ -1,7 +1,7 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface';
-import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo';
-import { ReviewCycleDto } from '../../dto/review-cycle.dto';
+import { Injectable, Inject } from '@nestjs/common'
+import { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
+import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
+import { ReviewCycleDto } from '../../dto/review-cycle.dto'
 
 @Injectable()
 export class GetReviewCycleUseCase {
@@ -11,12 +11,10 @@ export class GetReviewCycleUseCase {
   ) {}
 
   async execute(cycleId: string): Promise<ReviewCycleDto> {
-    const cycle = await this.reviewCycleRepository.findById(
-      ReviewCycleId.create(cycleId),
-    );
+    const cycle = await this.reviewCycleRepository.findById(ReviewCycleId.create(cycleId))
 
     if (!cycle) {
-      throw new Error('Review cycle not found');
+      throw new Error('Review cycle not found')
     }
 
     return {
@@ -27,6 +25,6 @@ export class GetReviewCycleUseCase {
       deadlines: cycle.deadlines.toObject(),
       startDate: cycle.startDate,
       endDate: cycle.endDate,
-    };
+    }
   }
 }

@@ -1,35 +1,52 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { ROLES_KEY } from '../decorators/roles.decorator';
+import { CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common'
+import { Reflector } from '@nestjs/core'
+
+interface RequestUser {
+  id: string
+  email: string
+  roles: string[]
+}
+
+interface RequestWithUser {
+  user: RequestUser
+}
 
 @Injectable()
 export class ReviewAuthorizationGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) {}
 
-  canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
-
-    if (!requiredRoles) {
-      return true;
-    }
-
-    const request = context.switchToHttp().getRequest();
-    const user = request.user;
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest<RequestWithUser>()
+    const { user } = request
 
     if (!user) {
-      throw new ForbiddenException('User not authenticated');
+      throw new ForbiddenException('User not authenticated')
     }
 
-    // Check if user has any of the required roles
-    const hasRole = requiredRoles.some((role) => user.role === role);
+    // Get required roles from decorator metadata
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>('review_roles', [
+      context.getHandler(),
+      context.getClass(),
+    ])
+
+    // If no roles required, allow access
+    if (!requiredRoles || requiredRoles.length === 0) {
+      return true
+    }
+
+    // Check if user has any of the required roles (case-insensitive)
+    const userRolesLower = user.roles.map((r) => r.toLowerCase())
+    const hasRole = requiredRoles.some((role) => userRolesLower.includes(role.toLowerCase()))
 
     if (!hasRole) {
-      throw new ForbiddenException('Insufficient permissions');
+      const rolesStr = requiredRoles.join(', ')
+      throw new ForbiddenException(`Insufficient permissions. Required roles: ${rolesStr}`)
     }
 
-    return true;
+    // Additional authorization logic can be added here
+    // For example, checking if a manager can only access their team's reviews
+    // This will be implemented in use cases for now
+
+    return true
   }
 }

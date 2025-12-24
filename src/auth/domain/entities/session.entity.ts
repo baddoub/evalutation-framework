@@ -1,4 +1,4 @@
-import { UserId } from '../value-objects/user-id.vo'
+import type { UserId } from '../value-objects/user-id.vo'
 import { InvalidUserException } from '../exceptions/invalid-user.exception'
 
 export interface SessionProps {

@@ -5,7 +5,10 @@ import { IUserRepository } from '../../../../auth/domain/repositories/user.repos
 import { ManagerEvaluation } from '../../../domain/entities/manager-evaluation.entity'
 import { PillarScores } from '../../../domain/value-objects/pillar-scores.vo'
 import { ReviewNotFoundException } from '../../../domain/exceptions/review-not-found.exception'
-import { SubmitManagerEvaluationInput, SubmitManagerEvaluationOutput } from '../../dto/manager-evaluation.dto'
+import {
+  SubmitManagerEvaluationInput,
+  SubmitManagerEvaluationOutput,
+} from '../../dto/manager-evaluation.dto'
 
 @Injectable()
 export class SubmitManagerEvaluationUseCase {

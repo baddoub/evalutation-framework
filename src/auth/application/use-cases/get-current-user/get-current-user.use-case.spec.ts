@@ -1,7 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing'
+import type { TestingModule } from '@nestjs/testing'
+import { Test } from '@nestjs/testing'
 import { GetCurrentUserUseCase } from './get-current-user.use-case'
-import { IUserRepository } from '../../../domain/repositories/user.repository.interface'
-import { GetCurrentUserInput } from './get-current-user.input'
+import type { IUserRepository } from '../../../domain/repositories/user.repository.interface'
+import type { GetCurrentUserInput } from './get-current-user.input'
 import { User } from '../../../domain/entities/user.entity'
 import { UserId } from '../../../domain/value-objects/user-id.vo'
 import { Email } from '../../../domain/value-objects/email.vo'
@@ -34,7 +35,8 @@ describe('GetCurrentUserUseCase', () => {
       delete: jest.fn(),
       existsByEmail: jest.fn(),
       findByRole: jest.fn(),
-      findByManagerId: jest.fn(),    }
+      findByManagerId: jest.fn(),
+    }
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

@@ -1,4 +1,4 @@
-import { PeerFeedback } from '../entities/peer-feedback.entity'
+import type { PeerFeedback } from '../entities/peer-feedback.entity'
 import { PillarScores } from '../value-objects/pillar-scores.vo'
 import { NoPeerFeedbackException } from '../exceptions/no-peer-feedback.exception'
 

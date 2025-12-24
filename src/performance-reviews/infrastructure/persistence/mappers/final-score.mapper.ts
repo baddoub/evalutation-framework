@@ -1,4 +1,4 @@
-import { FinalScore as PrismaFinalScore } from '@prisma/client'
+import type { FinalScore as PrismaFinalScore } from '@prisma/client'
 import { FinalScore, FinalScoreId } from '../../../domain/entities/final-score.entity'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
 import { UserId } from '../../../../auth/domain/value-objects/user-id.vo'
@@ -84,7 +84,9 @@ export class FinalScoreMapper {
    * @param domain - FinalScore domain entity
    * @returns Prisma FinalScore data (without timestamps)
    */
-  static toPrisma(domain: FinalScore): Omit<PrismaFinalScore, 'createdAt' | 'updatedAt' | 'deletedAt'> {
+  static toPrisma(
+    domain: FinalScore,
+  ): Omit<PrismaFinalScore, 'createdAt' | 'updatedAt' | 'deletedAt'> {
     return {
       id: domain.id.value,
       cycleId: domain.cycleId.value,

@@ -5,8 +5,8 @@
  * and refresh token lifecycle.
  */
 
-import { UserId } from '../../domain/value-objects/user-id.vo'
-import { Session } from '../../domain/entities/session.entity'
+import type { UserId } from '../../domain/value-objects/user-id.vo'
+import type { Session } from '../../domain/entities/session.entity'
 
 export interface CreateSessionDto {
   userId: UserId

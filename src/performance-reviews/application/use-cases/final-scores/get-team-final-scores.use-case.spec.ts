@@ -1,7 +1,7 @@
 import { GetTeamFinalScoresUseCase } from './get-team-final-scores.use-case'
-import { IFinalScoreRepository } from '../../../domain/repositories/final-score.repository.interface'
-import { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
-import { IUserRepository } from '../../../../auth/domain/repositories/user.repository.interface'
+import type { IFinalScoreRepository } from '../../../domain/repositories/final-score.repository.interface'
+import type { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
+import type { IUserRepository } from '../../../../auth/domain/repositories/user.repository.interface'
 import { FinalScore, FinalScoreId } from '../../../domain/entities/final-score.entity'
 import { User } from '../../../../auth/domain/entities/user.entity'
 import { ReviewCycle } from '../../../domain/entities/review-cycle.entity'
@@ -15,7 +15,7 @@ import { BonusTier } from '../../../domain/value-objects/bonus-tier.vo'
 import { EngineerLevel } from '../../../domain/value-objects/engineer-level.vo'
 import { CycleDeadlines } from '../../../domain/value-objects/cycle-deadlines.vo'
 import { ReviewNotFoundException } from '../../../domain/exceptions/review-not-found.exception'
-import { GetTeamFinalScoresInput, GetTeamFinalScoresOutput } from '../../dto/final-score.dto'
+import type { GetTeamFinalScoresInput, GetTeamFinalScoresOutput } from '../../dto/final-score.dto'
 
 describe('GetTeamFinalScoresUseCase', () => {
   let useCase: GetTeamFinalScoresUseCase
@@ -136,15 +136,11 @@ describe('GetTeamFinalScoresUseCase', () => {
     }
 
     // Create use case instance
-    useCase = new GetTeamFinalScoresUseCase(
-      finalScoreRepository,
-      cycleRepository,
-      userRepository,
-    )
+    useCase = new GetTeamFinalScoresUseCase(finalScoreRepository, cycleRepository, userRepository)
   })
 
   describe('execute', () => {
-    describe('CRITICAL: Should retrieve all team members\' final scores', () => {
+    describe("CRITICAL: Should retrieve all team members' final scores", () => {
       it('should return scores for all direct reports', async () => {
         // Arrange
         const managerId = createManagerId()
@@ -306,7 +302,7 @@ describe('GetTeamFinalScoresUseCase', () => {
       })
     })
 
-    describe('CRITICAL: Should only return direct reports\' scores', () => {
+    describe("CRITICAL: Should only return direct reports' scores", () => {
       it('should only include employees where managerId matches input managerId', async () => {
         // Arrange
         const managerId = createManagerId()
@@ -376,10 +372,7 @@ describe('GetTeamFinalScoresUseCase', () => {
         const input = createValidInput(managerId1, cycleId)
         const cycle = createValidReviewCycle(cycleId)
 
-        const directReports = [
-          createValidUser(managerId1.value),
-          createValidUser(managerId1.value),
-        ]
+        const directReports = [createValidUser(managerId1.value), createValidUser(managerId1.value)]
 
         cycleRepository.findById.mockResolvedValue(cycle)
         userRepository.findByManagerId.mockResolvedValue(directReports)
@@ -1071,10 +1064,7 @@ describe('GetTeamFinalScoresUseCase', () => {
         const input = createValidInput(managerId, cycleId)
         const cycle = createValidReviewCycle(cycleId)
 
-        const teamMembers = [
-          createValidUser(managerId.value),
-          createValidUser(managerId.value),
-        ]
+        const teamMembers = [createValidUser(managerId.value), createValidUser(managerId.value)]
 
         cycleRepository.findById.mockResolvedValue(cycle)
         userRepository.findByManagerId.mockResolvedValue(teamMembers)
@@ -1245,11 +1235,7 @@ describe('GetTeamFinalScoresUseCase', () => {
         const employeeBelow = createValidUser(managerId.value)
         const directReports = [employeeExceeds, employeeMeets, employeeBelow]
 
-        const scoreExceeds = createValidFinalScore(
-          cycleId,
-          employeeExceeds.id,
-          BonusTier.EXCEEDS,
-        )
+        const scoreExceeds = createValidFinalScore(cycleId, employeeExceeds.id, BonusTier.EXCEEDS)
         const scoreMeets = createValidFinalScore(cycleId, employeeMeets.id, BonusTier.MEETS)
         const scoreBelow = createValidFinalScore(cycleId, employeeBelow.id, BonusTier.BELOW)
 

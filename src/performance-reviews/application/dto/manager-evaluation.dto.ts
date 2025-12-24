@@ -2,8 +2,8 @@
  * Manager Evaluation DTOs
  */
 
-import { UserId } from '../../../auth/domain/value-objects/user-id.vo'
-import { ReviewCycleId } from '../../domain/value-objects/review-cycle-id.vo'
+import type { UserId } from '../../../auth/domain/value-objects/user-id.vo'
+import type { ReviewCycleId } from '../../domain/value-objects/review-cycle-id.vo'
 
 export interface ManagerEvaluationDto {
   id: string

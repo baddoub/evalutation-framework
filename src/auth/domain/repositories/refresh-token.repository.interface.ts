@@ -1,5 +1,5 @@
-import { RefreshToken } from '../entities/refresh-token.entity'
-import { UserId } from '../value-objects/user-id.vo'
+import type { RefreshToken } from '../entities/refresh-token.entity'
+import type { UserId } from '../value-objects/user-id.vo'
 
 /**
  * RefreshToken Repository Interface

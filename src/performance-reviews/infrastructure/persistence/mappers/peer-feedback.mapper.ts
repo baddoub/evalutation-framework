@@ -1,4 +1,4 @@
-import { PeerFeedback as PrismaPeerFeedback } from '@prisma/client'
+import type { PeerFeedback as PrismaPeerFeedback } from '@prisma/client'
 import { PeerFeedback } from '../../../domain/entities/peer-feedback.entity'
 import { PeerFeedbackId } from '../../../domain/value-objects/peer-feedback-id.vo'
 import { ReviewCycleId } from '../../../domain/value-objects/review-cycle-id.vo'
@@ -55,7 +55,9 @@ export class PeerFeedbackMapper {
    * @param domain - PeerFeedback domain entity
    * @returns Prisma PeerFeedback data (without timestamps)
    */
-  static toPrisma(domain: PeerFeedback): Omit<PrismaPeerFeedback, 'createdAt' | 'updatedAt' | 'deletedAt'> {
+  static toPrisma(
+    domain: PeerFeedback,
+  ): Omit<PrismaPeerFeedback, 'createdAt' | 'updatedAt' | 'deletedAt'> {
     return {
       id: domain.id.value,
       cycleId: domain.cycleId.value,

@@ -6,7 +6,10 @@ import { DomainException } from '../../../common/exceptions/domain.exception'
  * Domain Layer Exception - represents business rule violation
  */
 export class InvalidWeightedScoreException extends DomainException {
-  constructor(message: string = 'Weighted score must be between 0 and 4', code: string = 'INVALID_WEIGHTED_SCORE') {
+  constructor(
+    message: string = 'Weighted score must be between 0 and 4',
+    code: string = 'INVALID_WEIGHTED_SCORE',
+  ) {
     super(message, code)
     this.name = 'InvalidWeightedScoreException'
   }

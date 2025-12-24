@@ -14,7 +14,13 @@ import { InvalidRoleException } from '../exceptions/invalid-role.exception'
  * - Domain Layer: Zero dependencies on frameworks
  */
 export class Role {
-  private static readonly VALID_ROLES = ['admin', 'manager', 'user'] as const
+  private static readonly VALID_ROLES = [
+    'admin',
+    'manager',
+    'user',
+    'hr_admin',
+    'calibrator',
+  ] as const
   private readonly _value: string
 
   private constructor(value: string) {

@@ -39,7 +39,7 @@ export class UpdateManagerEvaluationRequestDto {
 
   @ApiPropertyOptional({
     example: 'John has shown exceptional growth this year...',
-    maxLength: 3000
+    maxLength: 3000,
   })
   @IsOptional()
   @IsString()
@@ -80,7 +80,7 @@ export class SubmitManagerEvaluationRequestDto {
 
   @ApiProperty({
     example: 'John has consistently delivered high-impact projects...',
-    maxLength: 3000
+    maxLength: 3000,
   })
   @IsString()
   @MaxLength(3000)
@@ -88,7 +88,7 @@ export class SubmitManagerEvaluationRequestDto {
 
   @ApiProperty({
     example: 'Strong technical leadership and mentoring skills...',
-    maxLength: 2000
+    maxLength: 2000,
   })
   @IsString()
   @MaxLength(2000)
@@ -96,7 +96,7 @@ export class SubmitManagerEvaluationRequestDto {
 
   @ApiProperty({
     example: 'Could improve time management and prioritization...',
-    maxLength: 2000
+    maxLength: 2000,
   })
   @IsString()
   @MaxLength(2000)
@@ -104,7 +104,7 @@ export class SubmitManagerEvaluationRequestDto {
 
   @ApiProperty({
     example: 'Focus on delegation and team empowerment in Q2...',
-    maxLength: 2000
+    maxLength: 2000,
   })
   @IsString()
   @MaxLength(2000)

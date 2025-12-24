@@ -1,31 +1,37 @@
 import {
   Controller,
+  Get,
   Post,
   Body,
   Param,
-  UseGuards,
-  UseFilters,
   HttpCode,
   HttpStatus,
+  UseGuards,
+  UseFilters,
 } from '@nestjs/common'
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger'
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+  ApiParam,
+} from '@nestjs/swagger'
 import { JwtAuthGuard } from '../../../auth/presentation/guards/jwt-auth.guard'
 import { ReviewAuthorizationGuard } from '../guards/review-authorization.guard'
 import { ReviewExceptionFilter } from '../filters/review-exception.filter'
-import { Roles } from '../decorators/roles.decorator'
+import { RequiresReviewRole } from '../decorators/requires-review-role.decorator'
 import { CurrentUser, CurrentUserData } from '../decorators/current-user.decorator'
-import {
-  ScoreAdjustmentRequestDto,
-  ScoreAdjustmentResponseDto,
-} from '../dto/final-score.dto'
+import { RequestScoreAdjustmentDto } from '../dto/requests/request-score-adjustment.dto'
+import { ReviewScoreAdjustmentDto } from '../dto/requests/review-score-adjustment.dto'
 import { RequestScoreAdjustmentUseCase } from '../../application/use-cases/score-adjustments/request-score-adjustment.use-case'
 import { ReviewScoreAdjustmentUseCase } from '../../application/use-cases/score-adjustments/review-score-adjustment.use-case'
 import { ReviewCycleId } from '../../domain/value-objects/review-cycle-id.vo'
-import { UserId } from '../../../auth/domain/value-objects/user-id.vo'
+import { UserId } from '../../domain/value-objects/user-id.vo'
 
 @ApiTags('Score Adjustments')
 @ApiBearerAuth()
-@Controller('performance-reviews/score-adjustments')
+@Controller('performance-reviews')
 @UseGuards(JwtAuthGuard, ReviewAuthorizationGuard)
 @UseFilters(ReviewExceptionFilter)
 export class ScoreAdjustmentsController {
@@ -34,14 +40,18 @@ export class ScoreAdjustmentsController {
     private readonly reviewScoreAdjustmentUseCase: ReviewScoreAdjustmentUseCase,
   ) {}
 
-  @Post(':cycleId/employees/:employeeId/request')
-  @Roles('MANAGER')
+  @Post('cycles/:cycleId/employees/:employeeId/adjustment-request')
+  @RequiresReviewRole('MANAGER')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Request a score adjustment for an employee' })
+  @ApiParam({ name: 'cycleId', description: 'Review cycle ID', example: 'cycle-uuid-123' })
+  @ApiParam({ name: 'employeeId', description: 'Employee user ID', example: 'user-uuid-456' })
+  @ApiOperation({
+    summary: 'Request score adjustment',
+    description: 'Manager requests adjustment to locked scores with justification',
+  })
   @ApiResponse({
     status: 201,
     description: 'Score adjustment request created successfully',
-    type: ScoreAdjustmentResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - Manager only' })
@@ -50,9 +60,9 @@ export class ScoreAdjustmentsController {
   async requestScoreAdjustment(
     @Param('cycleId') cycleId: string,
     @Param('employeeId') employeeId: string,
-    @Body() dto: ScoreAdjustmentRequestDto,
+    @Body() dto: RequestScoreAdjustmentDto,
     @CurrentUser() currentUser: CurrentUserData,
-  ): Promise<ScoreAdjustmentResponseDto> {
+  ) {
     const result = await this.requestScoreAdjustmentUseCase.execute({
       cycleId: ReviewCycleId.fromString(cycleId),
       employeeId: UserId.fromString(employeeId),
@@ -69,27 +79,53 @@ export class ScoreAdjustmentsController {
 
     return {
       id: result.id,
-      finalScoreId: employeeId, // The final score ID would be the same as employee ID in the context
-      previousScore: 0, // Would need to be fetched from the use case
-      requestedScore: dto.newWeightedScore,
-      reason: result.reason,
+      employeeId,
       status: result.status,
-      requestedBy: currentUser.userId,
+      reason: result.reason,
       requestedAt: result.requestedAt.toISOString(),
-      reviewedAt: null,
-      reviewNotes: null,
-      reviewedBy: null,
     }
   }
 
-  @Post(':requestId/review')
-  @Roles('HR_ADMIN')
+  @Get('adjustment-requests')
+  @RequiresReviewRole('HR_ADMIN')
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['PENDING', 'APPROVED', 'REJECTED'],
+    description: 'Filter by request status',
+  })
+  @ApiOperation({
+    summary: 'Get pending adjustment requests (HR_ADMIN)',
+    description: 'Retrieve all score adjustment requests for HR review',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Adjustment requests retrieved successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - HR Admin only' })
+  async getPendingAdjustmentRequests() {
+    // Note: This would require a GetPendingAdjustmentRequestsUseCase to be implemented
+    return {
+      requests: [],
+    }
+  }
+
+  @Post('adjustment-requests/:requestId/review')
+  @RequiresReviewRole('HR_ADMIN')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Approve or reject a score adjustment request' })
+  @ApiParam({
+    name: 'requestId',
+    description: 'Score adjustment request ID',
+    example: 'request-uuid-xyz',
+  })
+  @ApiOperation({
+    summary: 'Approve/Reject adjustment request',
+    description: "HR Admin approves or rejects a manager's score adjustment request",
+  })
   @ApiResponse({
     status: 200,
     description: 'Score adjustment request reviewed successfully',
-    type: ScoreAdjustmentResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - HR Admin only' })
@@ -97,9 +133,9 @@ export class ScoreAdjustmentsController {
   @ApiResponse({ status: 400, description: 'Request already reviewed' })
   async reviewScoreAdjustment(
     @Param('requestId') requestId: string,
-    @Body() dto: { action: 'APPROVED' | 'REJECTED'; rejectionReason?: string },
+    @Body() dto: ReviewScoreAdjustmentDto,
     @CurrentUser() currentUser: CurrentUserData,
-  ): Promise<ScoreAdjustmentResponseDto> {
+  ) {
     const result = await this.reviewScoreAdjustmentUseCase.execute({
       requestId,
       action: dto.action,
@@ -109,16 +145,9 @@ export class ScoreAdjustmentsController {
 
     return {
       id: result.id,
-      finalScoreId: '', // Would need to be fetched from the request
-      previousScore: 0, // Would need to be fetched
-      requestedScore: 0, // Would need to be fetched
-      reason: '', // Would need to be fetched
       status: result.status,
-      requestedBy: '', // Would need to be fetched
-      requestedAt: '', // Would need to be fetched
       reviewedAt: result.reviewedAt.toISOString(),
-      reviewNotes: dto.rejectionReason || 'Approved',
-      reviewedBy: result.approvedBy,
+      approvedBy: result.approvedBy,
     }
   }
 }

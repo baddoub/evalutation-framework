@@ -1,9 +1,9 @@
 import { GetTeamReviewsUseCase } from './get-team-reviews.use-case'
-import { IUserRepository } from '../../../../auth/domain/repositories/user.repository.interface'
-import { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
-import { ISelfReviewRepository } from '../../../domain/repositories/self-review.repository.interface'
-import { IPeerFeedbackRepository } from '../../../domain/repositories/peer-feedback.repository.interface'
-import { IManagerEvaluationRepository } from '../../../domain/repositories/manager-evaluation.repository.interface'
+import type { IUserRepository } from '../../../../auth/domain/repositories/user.repository.interface'
+import type { IReviewCycleRepository } from '../../../domain/repositories/review-cycle.repository.interface'
+import type { ISelfReviewRepository } from '../../../domain/repositories/self-review.repository.interface'
+import type { IPeerFeedbackRepository } from '../../../domain/repositories/peer-feedback.repository.interface'
+import type { IManagerEvaluationRepository } from '../../../domain/repositories/manager-evaluation.repository.interface'
 import { User } from '../../../../auth/domain/entities/user.entity'
 import { ReviewCycle } from '../../../domain/entities/review-cycle.entity'
 import { SelfReview } from '../../../domain/entities/self-review.entity'
@@ -18,7 +18,7 @@ import { ReviewStatus } from '../../../domain/value-objects/review-status.vo'
 import { Narrative } from '../../../domain/value-objects/narrative.vo'
 import { CycleDeadlines } from '../../../domain/value-objects/cycle-deadlines.vo'
 import { ReviewNotFoundException } from '../../../domain/exceptions/review-not-found.exception'
-import { GetTeamReviewsInput, GetTeamReviewsOutput } from '../../dto/manager-evaluation.dto'
+import type { GetTeamReviewsInput, GetTeamReviewsOutput } from '../../dto/manager-evaluation.dto'
 
 describe('GetTeamReviewsUseCase', () => {
   let useCase: GetTeamReviewsUseCase
@@ -74,10 +74,7 @@ describe('GetTeamReviewsUseCase', () => {
     })
   }
 
-  const createValidSelfReview = (
-    cycleId: ReviewCycleId,
-    userId: UserId,
-  ): SelfReview => {
+  const createValidSelfReview = (cycleId: ReviewCycleId, userId: UserId): SelfReview => {
     return SelfReview.create({
       cycleId,
       userId,
@@ -195,7 +192,7 @@ describe('GetTeamReviewsUseCase', () => {
   })
 
   describe('execute', () => {
-    describe('CRITICAL: Should retrieve all team members\' evaluations for a manager', () => {
+    describe("CRITICAL: Should retrieve all team members' evaluations for a manager", () => {
       it('should return reviews for all direct reports', async () => {
         // Arrange
         const managerId = createManagerId()
@@ -214,9 +211,7 @@ describe('GetTeamReviewsUseCase', () => {
           createValidPeerFeedback(cycleId, employee1.id, UserId.generate()),
           createValidPeerFeedback(cycleId, employee1.id, UserId.generate()),
         ]
-        const peerFeedback2 = [
-          createValidPeerFeedback(cycleId, employee2.id, UserId.generate()),
-        ]
+        const peerFeedback2 = [createValidPeerFeedback(cycleId, employee2.id, UserId.generate())]
 
         const managerEval1 = createValidManagerEvaluation(cycleId, employee1.id, managerId)
         const managerEval2 = createValidManagerEvaluation(cycleId, employee2.id, managerId)
@@ -386,7 +381,7 @@ describe('GetTeamReviewsUseCase', () => {
       })
     })
 
-    describe('CRITICAL: Should only return direct reports\' evaluations', () => {
+    describe("CRITICAL: Should only return direct reports' evaluations", () => {
       it('should only include employees where managerId matches input managerId', async () => {
         // Arrange
         const managerId = createManagerId()
@@ -469,10 +464,7 @@ describe('GetTeamReviewsUseCase', () => {
         const cycle = createValidReviewCycle(cycleId)
 
         // Only employees under managerId1
-        const directReports = [
-          createValidUser(managerId1.value),
-          createValidUser(managerId1.value),
-        ]
+        const directReports = [createValidUser(managerId1.value), createValidUser(managerId1.value)]
 
         cycleRepository.findById.mockResolvedValue(cycle)
         userRepository.findByManagerId.mockResolvedValue(directReports)
