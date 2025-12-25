@@ -7,6 +7,7 @@ import { GetAggregatedPeerFeedbackUseCase } from '../../application/use-cases/pe
 import type { CurrentUserData } from '../decorators/current-user.decorator'
 import { JwtAuthGuard } from '../../../auth/presentation/guards/jwt-auth.guard'
 import { ReviewAuthorizationGuard } from '../guards/review-authorization.guard'
+import type { IUserRepository } from '../../../auth/domain/repositories/user.repository.interface'
 
 describe('PeerFeedbackController', () => {
   let controller: PeerFeedbackController
@@ -36,6 +37,11 @@ describe('PeerFeedbackController', () => {
       execute: jest.fn(),
     }
 
+    const mockUserRepository: Partial<IUserRepository> = {
+      findByEmail: jest.fn(),
+      findById: jest.fn(),
+    }
+
     const mockJwtAuthGuard = { canActivate: jest.fn(() => true) }
     const mockReviewAuthGuard = { canActivate: jest.fn(() => true) }
 
@@ -45,6 +51,7 @@ describe('PeerFeedbackController', () => {
         { provide: NominatePeersUseCase, useValue: mockNominateUseCase },
         { provide: SubmitPeerFeedbackUseCase, useValue: mockSubmitUseCase },
         { provide: GetAggregatedPeerFeedbackUseCase, useValue: mockGetAggregatedUseCase },
+        { provide: 'IUserRepository', useValue: mockUserRepository },
       ],
     })
       .overrideGuard(JwtAuthGuard)
