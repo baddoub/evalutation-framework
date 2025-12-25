@@ -112,7 +112,12 @@ export class PrismaFinalScoreRepository implements IFinalScoreRepository {
     const prismaData = FinalScoreMapper.toPrisma(score)
 
     const saved = await this.prisma.finalScore.upsert({
-      where: { id: score.id.value },
+      where: {
+        cycleId_userId: {
+          cycleId: score.cycleId.value,
+          userId: score.userId.value,
+        },
+      },
       create: prismaData,
       update: prismaData,
     })

@@ -87,7 +87,13 @@ export class PrismaPeerNominationRepository implements IPeerNominationRepository
    */
   async save(nomination: PeerNomination): Promise<PeerNomination> {
     const saved = await this.prisma.peerNomination.upsert({
-      where: { id: nomination.id },
+      where: {
+        cycleId_nominatorId_nomineeId: {
+          cycleId: nomination.cycleId.value,
+          nominatorId: nomination.nominatorId.value,
+          nomineeId: nomination.nomineeId.value,
+        },
+      },
       create: {
         id: nomination.id,
         cycleId: nomination.cycleId.value,

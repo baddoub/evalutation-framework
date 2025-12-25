@@ -107,7 +107,12 @@ export class PrismaManagerEvaluationRepository implements IManagerEvaluationRepo
     const prismaData = ManagerEvaluationMapper.toPrisma(evaluation)
 
     const saved = await this.prisma.managerEvaluation.upsert({
-      where: { id: evaluation.id.value },
+      where: {
+        cycleId_employeeId: {
+          cycleId: evaluation.cycleId.value,
+          employeeId: evaluation.employeeId.value,
+        },
+      },
       create: prismaData,
       update: prismaData,
     })

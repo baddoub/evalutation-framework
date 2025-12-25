@@ -103,7 +103,13 @@ export class PrismaPeerFeedbackRepository implements IPeerFeedbackRepository {
     const prismaData = PeerFeedbackMapper.toPrisma(feedback)
 
     const saved = await this.prisma.peerFeedback.upsert({
-      where: { id: feedback.id.value },
+      where: {
+        cycleId_revieweeId_reviewerId: {
+          cycleId: feedback.cycleId.value,
+          revieweeId: feedback.revieweeId.value,
+          reviewerId: feedback.reviewerId.value,
+        },
+      },
       create: prismaData,
       update: prismaData,
     })

@@ -80,7 +80,12 @@ export class PrismaSelfReviewRepository implements ISelfReviewRepository {
     const prismaData = SelfReviewMapper.toPrisma(review)
 
     const saved = await this.prisma.selfReview.upsert({
-      where: { id: review.id.value },
+      where: {
+        cycleId_userId: {
+          cycleId: review.cycleId.value,
+          userId: review.userId.value,
+        },
+      },
       create: prismaData,
       update: prismaData,
     })
