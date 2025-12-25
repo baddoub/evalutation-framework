@@ -1,1 +1,0 @@
-{"version":3,"file":"unauthorized-access.exception.js","sourceRoot":"","sources":["../../../../src/performance-reviews/domain/exceptions/unauthorized-access.exception.ts"],"names":[],"mappings":";;;AAAA,MAAa,2BAA4B,SAAQ,KAAK;IACpD,YAAY,UAAkB,qBAAqB;QACjD,KAAK,CAAC,OAAO,CAAC,CAAA;QACd,IAAI,CAAC,IAAI,GAAG,6BAA6B,CAAA;IAC3C,CAAC;CACF;AALD,kEAKC"}
