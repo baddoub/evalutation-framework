@@ -133,6 +133,12 @@ export const navigationConfig: NavItem[] = [
         icon: FiUser,
       },
       {
+        id: 'peer-nomination',
+        label: 'Peer Nomination',
+        path: '/reviews/peer-nomination',
+        icon: FiUsers,
+      },
+      {
         id: '360-review-sub',
         label: '360 Review',
         path: '/reviews/peer-feedback',
