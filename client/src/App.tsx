@@ -1,8 +1,14 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import MainLayout from './components/layout/MainLayout'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
+import ProfilePage from './pages/ProfilePage'
+import ResourcesPage from './pages/ResourcesPage'
+import PostProjectReviewsPage from './pages/PostProjectReviewsPage'
+import PerformanceHistoryPage from './pages/PerformanceHistoryPage'
 import SelfReviewPage from './pages/performance-reviews/SelfReviewPage'
 import PeerNominationPage from './pages/performance-reviews/PeerNominationPage'
 import PeerFeedbackPage from './pages/performance-reviews/PeerFeedbackPage'
@@ -10,111 +16,81 @@ import MyPeerFeedbackPage from './pages/performance-reviews/MyPeerFeedbackPage'
 import TeamReviewsPage from './pages/performance-reviews/TeamReviewsPage'
 import MyFinalScorePage from './pages/performance-reviews/MyFinalScorePage'
 import AdminReviewCyclesPage from './pages/performance-reviews/AdminReviewCyclesPage'
-import authService from './services/authService'
+import { useAuth } from './contexts/AuthContext'
 
-// Protected Route component
+// Protected Route component - uses AuthContext to handle loading state properly
 const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
-  const isAuthenticated = authService.isAuthenticated()
-  return isAuthenticated ? children : <Navigate to="/login" replace />
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return <div className="loading-screen">Loading...</div>
+  }
+
+  return user ? children : <Navigate to="/login" replace />
 }
 
 // Public Route component (redirects to dashboard if already logged in)
 const PublicRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
-  const isAuthenticated = authService.isAuthenticated()
-  return !isAuthenticated ? children : <Navigate to="/dashboard" replace />
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return <div className="loading-screen">Loading...</div>
+  }
+
+  return !user ? children : <Navigate to="/dashboard" replace />
 }
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route
-          path="/login"
-          element={
-            <PublicRoute>
-              <LoginPage />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <PublicRoute>
-              <RegisterPage />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <LoginPage />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicRoute>
+                <RegisterPage />
+              </PublicRoute>
+            }
+          />
 
-        {/* Performance Review Routes */}
-        <Route
-          path="/reviews/self-review"
-          element={
-            <ProtectedRoute>
-              <SelfReviewPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/reviews/peer-nomination"
-          element={
-            <ProtectedRoute>
-              <PeerNominationPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/reviews/peer-feedback"
-          element={
-            <ProtectedRoute>
-              <PeerFeedbackPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/reviews/my-peer-feedback"
-          element={
-            <ProtectedRoute>
-              <MyPeerFeedbackPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/reviews/team"
-          element={
-            <ProtectedRoute>
-              <TeamReviewsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/reviews/final-score"
-          element={
-            <ProtectedRoute>
-              <MyFinalScorePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/reviews/admin/cycles"
-          element={
-            <ProtectedRoute>
-              <AdminReviewCyclesPage />
-            </ProtectedRoute>
-          }
-        />
+          {/* Protected routes with MainLayout */}
+          <Route
+            element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/resources" element={<ResourcesPage />} />
 
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </Router>
+            {/* Performance Review Routes */}
+            <Route path="/reviews/self-review" element={<SelfReviewPage />} />
+            <Route path="/reviews/peer-nomination" element={<PeerNominationPage />} />
+            <Route path="/reviews/peer-feedback" element={<PeerFeedbackPage />} />
+            <Route path="/reviews/my-peer-feedback" element={<MyPeerFeedbackPage />} />
+            <Route path="/reviews/team" element={<TeamReviewsPage />} />
+            <Route path="/reviews/final-score" element={<MyFinalScorePage />} />
+            <Route path="/reviews/admin/cycles" element={<AdminReviewCyclesPage />} />
+            <Route path="/reviews/post-project" element={<PostProjectReviewsPage />} />
+            <Route path="/reviews/history" element={<PerformanceHistoryPage />} />
+          </Route>
+
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   )
 }
 

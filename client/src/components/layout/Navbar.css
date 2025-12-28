@@ -1,0 +1,59 @@
+/* ========================================
+   NAVBAR COMPONENT
+   ======================================== */
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--neo-space-4) var(--neo-space-6);
+  background: var(--neo-white);
+  border-bottom: var(--neo-border-thick);
+  box-shadow: var(--neo-shadow);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar__brand {
+  display: flex;
+  align-items: center;
+}
+
+.navbar__title {
+  font-size: var(--neo-text-2xl);
+  font-weight: var(--neo-font-black);
+  color: var(--neo-black);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--neo-space-4);
+}
+
+.navbar__user {
+  font-size: var(--neo-text-base);
+  font-weight: var(--neo-font-medium);
+  color: var(--neo-black);
+}
+
+.navbar__logout {
+  background: var(--neo-red);
+  color: var(--neo-white);
+  padding: var(--neo-space-2) var(--neo-space-4);
+  font-size: var(--neo-text-sm);
+}
+
+.navbar__logout:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--neo-shadow-md);
+}
+
+.navbar__logout:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}

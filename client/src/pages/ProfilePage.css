@@ -1,0 +1,15 @@
+.profile-page {
+  padding: 2rem;
+}
+
+.profile-page h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: var(--neo-black);
+}
+
+.coming-soon {
+  font-size: 1.2rem;
+  color: var(--neo-gray);
+  font-style: italic;
+}

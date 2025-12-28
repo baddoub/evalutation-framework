@@ -1,0 +1,30 @@
+/* ========================================
+   MAIN LAYOUT COMPONENT
+   ======================================== */
+
+.main-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--neo-cream);
+}
+
+.main-layout__body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.main-layout__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--neo-space-6);
+  background: var(--neo-cream);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .main-layout__content {
+    padding: var(--neo-space-4);
+  }
+}
