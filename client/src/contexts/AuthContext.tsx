@@ -30,6 +30,7 @@ export interface AuthContextValue {
   user: User | null
   loading: boolean
   hasRole: (role: string) => boolean
+  login: (credentials: { email: string; password: string }) => Promise<void>
   logout: () => void
 }
 
@@ -91,6 +92,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   )
 
   /**
+   * Log in a user with email and password credentials.
+   * Authenticates via authService and updates user state.
+   */
+  const login = useCallback(async (credentials: { email: string; password: string }) => {
+    await authService.login(credentials)
+    const userData = await authService.getCurrentUser()
+    setUser(userData)
+  }, [])
+
+  /**
    * Log out the current user and clear authentication state.
    * Clears tokens from storage and resets user state to null.
    */
@@ -103,6 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     loading,
     hasRole,
+    login,
     logout,
   }
 
