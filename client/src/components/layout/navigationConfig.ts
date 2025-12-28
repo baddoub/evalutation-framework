@@ -127,6 +127,12 @@ export const navigationConfig: NavItem[] = [
         icon: FiBarChart2,
       },
       {
+        id: 'self-review',
+        label: 'Self Review',
+        path: '/reviews/self-review',
+        icon: FiUser,
+      },
+      {
         id: '360-review-sub',
         label: '360 Review',
         path: '/reviews/peer-feedback',
