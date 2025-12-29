@@ -35,6 +35,8 @@ import { NominatePeersUseCase } from './application/use-cases/peer-feedback/nomi
 import { SubmitPeerFeedbackUseCase } from './application/use-cases/peer-feedback/submit-peer-feedback.use-case'
 import { GetAggregatedPeerFeedbackUseCase } from './application/use-cases/peer-feedback/get-aggregated-peer-feedback.use-case'
 import { GetPeerFeedbackUseCase } from './application/use-cases/peer-feedback/get-peer-feedback.use-case'
+import { GetPeerFeedbackRequestsUseCase } from './application/use-cases/peer-feedback/get-peer-feedback-requests.use-case'
+import { GetMyNominationsUseCase } from './application/use-cases/peer-feedback/get-my-nominations.use-case'
 
 // Application - Use Cases - Manager Evaluations
 import { GetManagerEvaluationUseCase } from './application/use-cases/manager-evaluations/get-manager-evaluation.use-case'
@@ -154,6 +156,8 @@ import { AuthModule } from '../auth/auth.module'
     SubmitPeerFeedbackUseCase,
     GetAggregatedPeerFeedbackUseCase,
     GetPeerFeedbackUseCase,
+    GetPeerFeedbackRequestsUseCase,
+    GetMyNominationsUseCase,
 
     // Use Cases - Manager Evaluations
     GetManagerEvaluationUseCase,

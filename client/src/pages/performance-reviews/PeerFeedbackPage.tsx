@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import performanceReviewsService from '../../services/performanceReviewsService'
-import { ReviewCycle, PillarScores, PeerFeedbackRequest } from '../../types/performanceReviews'
+import { ReviewCycle, PillarScores } from '../../types/performanceReviews'
 import PillarScoreInput from '../../components/performance-reviews/PillarScoreInput'
 import LoadingSpinner from '../../components/performance-reviews/LoadingSpinner'
 import ErrorMessage from '../../components/performance-reviews/ErrorMessage'
 import ReviewCard from '../../components/performance-reviews/ReviewCard'
 import './PerformanceReviewsPages.css'
+
+interface FeedbackRequest {
+  nominationId: string
+  nominatorId: string
+  nominatorName: string
+  nominatorEmail: string
+  status: string
+  nominatedAt: string
+  feedbackSubmitted: boolean
+}
 
 const PeerFeedbackPage: React.FC = () => {
   const navigate = useNavigate()
@@ -18,7 +28,7 @@ const PeerFeedbackPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [cycle, setCycle] = useState<ReviewCycle | null>(null)
-  const [requests, setRequests] = useState<PeerFeedbackRequest[]>([])
+  const [requests, setRequests] = useState<FeedbackRequest[]>([])
   const [selectedRevieweeId, setSelectedRevieweeId] = useState<string>(revieweeIdParam || '')
   const [scores, setScores] = useState<PillarScores>({
     projectImpact: 0,
@@ -46,10 +56,24 @@ const PeerFeedbackPage: React.FC = () => {
       const feedbackRequests = await performanceReviewsService.getPeerFeedbackRequests(
         activeCycle.id,
       )
-      setRequests(feedbackRequests.requests)
+      // Map the response to our FeedbackRequest interface
+      const mappedRequests: FeedbackRequest[] = feedbackRequests.requests.map((r: any) => ({
+        nominationId: r.nominationId,
+        nominatorId: r.nominatorId,
+        nominatorName: r.nominatorName,
+        nominatorEmail: r.nominatorEmail,
+        status: r.status,
+        nominatedAt: r.nominatedAt,
+        feedbackSubmitted: r.feedbackSubmitted,
+      }))
+      setRequests(mappedRequests)
 
-      if (feedbackRequests.requests.length > 0 && !revieweeIdParam) {
-        setSelectedRevieweeId(feedbackRequests.requests[0].revieweeId)
+      // Select first pending (not completed) request
+      const pendingRequests = mappedRequests.filter((r) => !r.feedbackSubmitted)
+      if (pendingRequests.length > 0 && !revieweeIdParam) {
+        setSelectedRevieweeId(pendingRequests[0].nominatorId)
+      } else if (mappedRequests.length > 0 && !revieweeIdParam) {
+        setSelectedRevieweeId(mappedRequests[0].nominatorId)
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load peer feedback requests')
@@ -104,7 +128,9 @@ const PeerFeedbackPage: React.FC = () => {
     }
   }
 
-  const selectedRequest = requests.find((r) => r.revieweeId === selectedRevieweeId)
+  const selectedRequest = requests.find((r) => r.nominatorId === selectedRevieweeId)
+  const pendingCount = requests.filter((r) => !r.feedbackSubmitted).length
+  const completedCount = requests.filter((r) => r.feedbackSubmitted).length
 
   if (loading) return <LoadingSpinner />
 
@@ -147,7 +173,14 @@ const PeerFeedbackPage: React.FC = () => {
         {error && <ErrorMessage message={error} />}
         {successMessage && <div className="success-message">{successMessage}</div>}
 
-        <ReviewCard title="Select Colleague">
+        <ReviewCard title="Feedback Requests">
+          <div className="feedback-summary">
+            <p className="section-description">
+              You have been nominated to provide feedback for {requests.length} colleague(s).
+              {pendingCount > 0 && ` ${pendingCount} pending.`}
+              {completedCount > 0 && ` ${completedCount} completed.`}
+            </p>
+          </div>
           <div className="reviewee-selector">
             <label className="form-label">Choose colleague to review:</label>
             <select
@@ -156,18 +189,23 @@ const PeerFeedbackPage: React.FC = () => {
               className="reviewee-select"
             >
               {requests.map((request) => (
-                <option key={request.revieweeId} value={request.revieweeId}>
-                  {request.revieweeName} ({request.revieweeEmail}) -{' '}
-                  {request.status === 'COMPLETED' ? 'Completed' : 'Pending'}
+                <option key={request.nominatorId} value={request.nominatorId}>
+                  {request.nominatorName} ({request.nominatorEmail}) -{' '}
+                  {request.feedbackSubmitted ? '✓ Completed' : 'Pending'}
                 </option>
               ))}
             </select>
             {selectedRequest && (
               <div className="request-info">
                 <p>
-                  <strong>Due:</strong>{' '}
-                  {new Date(selectedRequest.dueDate).toLocaleDateString()}
+                  <strong>Nominated on:</strong>{' '}
+                  {new Date(selectedRequest.nominatedAt).toLocaleDateString()}
                 </p>
+                {selectedRequest.feedbackSubmitted && (
+                  <p className="completed-note">
+                    You have already submitted feedback for this colleague.
+                  </p>
+                )}
                 <p className="anonymity-note">
                   Note: Your feedback will be anonymized and aggregated with other peer reviews.
                 </p>
@@ -270,8 +308,12 @@ const PeerFeedbackPage: React.FC = () => {
           <button onClick={() => navigate('/dashboard')} className="btn-secondary">
             Cancel
           </button>
-          <button onClick={handleSubmit} disabled={saving} className="btn-primary">
-            {saving ? 'Submitting...' : 'Submit Feedback'}
+          <button
+            onClick={handleSubmit}
+            disabled={saving || (selectedRequest?.feedbackSubmitted ?? false)}
+            className="btn-primary"
+          >
+            {saving ? 'Submitting...' : selectedRequest?.feedbackSubmitted ? 'Already Submitted' : 'Submit Feedback'}
           </button>
         </div>
       </div>

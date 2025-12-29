@@ -4,6 +4,8 @@ import { PeerFeedbackController } from './peer-feedback.controller'
 import { NominatePeersUseCase } from '../../application/use-cases/peer-feedback/nominate-peers.use-case'
 import { SubmitPeerFeedbackUseCase } from '../../application/use-cases/peer-feedback/submit-peer-feedback.use-case'
 import { GetAggregatedPeerFeedbackUseCase } from '../../application/use-cases/peer-feedback/get-aggregated-peer-feedback.use-case'
+import { GetPeerFeedbackRequestsUseCase } from '../../application/use-cases/peer-feedback/get-peer-feedback-requests.use-case'
+import { GetMyNominationsUseCase } from '../../application/use-cases/peer-feedback/get-my-nominations.use-case'
 import type { CurrentUserData } from '../decorators/current-user.decorator'
 import { JwtAuthGuard } from '../../../auth/presentation/guards/jwt-auth.guard'
 import { ReviewAuthorizationGuard } from '../guards/review-authorization.guard'
@@ -14,6 +16,8 @@ describe('PeerFeedbackController', () => {
   let nominatePeersUseCase: jest.Mocked<NominatePeersUseCase>
   let submitPeerFeedbackUseCase: jest.Mocked<SubmitPeerFeedbackUseCase>
   let getAggregatedPeerFeedbackUseCase: jest.Mocked<GetAggregatedPeerFeedbackUseCase>
+  let getPeerFeedbackRequestsUseCase: jest.Mocked<GetPeerFeedbackRequestsUseCase>
+  let getMyNominationsUseCase: jest.Mocked<GetMyNominationsUseCase>
 
   const mockUser: CurrentUserData = {
     userId: '550e8400-e29b-41d4-a716-446655440001',
@@ -37,6 +41,14 @@ describe('PeerFeedbackController', () => {
       execute: jest.fn(),
     }
 
+    const mockGetPeerFeedbackRequestsUseCase = {
+      execute: jest.fn(),
+    }
+
+    const mockGetMyNominationsUseCase = {
+      execute: jest.fn(),
+    }
+
     const mockUserRepository: Partial<IUserRepository> = {
       findByEmail: jest.fn(),
       findById: jest.fn(),
@@ -51,6 +63,8 @@ describe('PeerFeedbackController', () => {
         { provide: NominatePeersUseCase, useValue: mockNominateUseCase },
         { provide: SubmitPeerFeedbackUseCase, useValue: mockSubmitUseCase },
         { provide: GetAggregatedPeerFeedbackUseCase, useValue: mockGetAggregatedUseCase },
+        { provide: GetPeerFeedbackRequestsUseCase, useValue: mockGetPeerFeedbackRequestsUseCase },
+        { provide: GetMyNominationsUseCase, useValue: mockGetMyNominationsUseCase },
         { provide: 'IUserRepository', useValue: mockUserRepository },
       ],
     })
@@ -64,6 +78,8 @@ describe('PeerFeedbackController', () => {
     nominatePeersUseCase = module.get(NominatePeersUseCase)
     submitPeerFeedbackUseCase = module.get(SubmitPeerFeedbackUseCase)
     getAggregatedPeerFeedbackUseCase = module.get(GetAggregatedPeerFeedbackUseCase)
+    getPeerFeedbackRequestsUseCase = module.get(GetPeerFeedbackRequestsUseCase)
+    getMyNominationsUseCase = module.get(GetMyNominationsUseCase)
   })
 
   it('should be defined', () => {
@@ -151,12 +167,39 @@ describe('PeerFeedbackController', () => {
 
   describe('getPeerFeedbackRequests', () => {
     it('should return peer feedback requests', async () => {
-      const result = await controller.getPeerFeedbackRequests()
+      const cycleId = '550e8400-e29b-41d4-a716-446655440000'
+
+      getPeerFeedbackRequestsUseCase.execute.mockResolvedValue({
+        requests: [],
+        total: 0,
+      })
+
+      const result = await controller.getPeerFeedbackRequests(cycleId, mockUser)
 
       expect(result).toEqual({
         requests: [],
         total: 0,
       })
+      expect(getPeerFeedbackRequestsUseCase.execute).toHaveBeenCalled()
+    })
+  })
+
+  describe('getMyNominations', () => {
+    it('should return my nominations', async () => {
+      const cycleId = '550e8400-e29b-41d4-a716-446655440000'
+
+      getMyNominationsUseCase.execute.mockResolvedValue({
+        nominations: [],
+        total: 0,
+      })
+
+      const result = await controller.getMyNominations(cycleId, mockUser)
+
+      expect(result).toEqual({
+        nominations: [],
+        total: 0,
+      })
+      expect(getMyNominationsUseCase.execute).toHaveBeenCalled()
     })
   })
 

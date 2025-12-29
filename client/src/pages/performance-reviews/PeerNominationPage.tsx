@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import performanceReviewsService from '../../services/performanceReviewsService'
-import { ReviewCycle } from '../../types/performanceReviews'
+import { ReviewCycle, PeerNomination } from '../../types/performanceReviews'
 import LoadingSpinner from '../../components/performance-reviews/LoadingSpinner'
 import ErrorMessage from '../../components/performance-reviews/ErrorMessage'
 import ReviewCard from '../../components/performance-reviews/ReviewCard'
@@ -15,6 +15,8 @@ const PeerNominationPage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [cycle, setCycle] = useState<ReviewCycle | null>(null)
   const [nomineeIds, setNomineeIds] = useState<string[]>(['', '', ''])
+  const [existingNominations, setExistingNominations] = useState<PeerNomination[]>([])
+  const [hasExistingNominations, setHasExistingNominations] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -27,6 +29,24 @@ const PeerNominationPage: React.FC = () => {
 
       const activeCycle = await performanceReviewsService.getActiveCycle()
       setCycle(activeCycle)
+
+      // Load existing nominations
+      try {
+        const { nominations } = await performanceReviewsService.getMyNominations(activeCycle.id)
+        if (nominations.length > 0) {
+          setExistingNominations(nominations)
+          setHasExistingNominations(true)
+          // Pre-fill the form with existing nominations
+          const existingIds = nominations.map((n) => n.nomineeEmail || n.nomineeId)
+          // Ensure we have at least 3 slots
+          while (existingIds.length < 3) {
+            existingIds.push('')
+          }
+          setNomineeIds(existingIds)
+        }
+      } catch {
+        // No existing nominations, that's fine
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load review cycle data')
     } finally {
@@ -104,11 +124,35 @@ const PeerNominationPage: React.FC = () => {
         {error && <ErrorMessage message={error} />}
         {successMessage && <div className="success-message">{successMessage}</div>}
 
-        <ReviewCard title="Select Your Peer Reviewers">
+        {hasExistingNominations && (
+          <ReviewCard title="Your Current Nominations">
+            <div className="existing-nominations">
+              <p className="section-description">
+                You have already nominated the following peers. You can update your nominations below.
+              </p>
+              <ul className="nominations-list-display">
+                {existingNominations.map((nom) => (
+                  <li key={nom.id} className="nomination-item">
+                    <span className="nominee-name">{nom.nomineeName}</span>
+                    {nom.nomineeEmail && (
+                      <span className="nominee-email">({nom.nomineeEmail})</span>
+                    )}
+                    <span className={`nomination-status status-${nom.status.toLowerCase()}`}>
+                      {nom.status}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </ReviewCard>
+        )}
+
+        <ReviewCard title={hasExistingNominations ? 'Update Your Nominations' : 'Select Your Peer Reviewers'}>
           <div className="nomination-section">
             <p className="section-description">
-              Nominate 3-5 colleagues who can provide meaningful feedback on your performance.
-              Choose people you have worked closely with during this review period.
+              {hasExistingNominations
+                ? 'Update your peer nominations below. Enter employee email addresses.'
+                : 'Nominate 3-5 colleagues who can provide meaningful feedback on your performance. Choose people you have worked closely with during this review period.'}
             </p>
 
             <div className="nominees-list">

@@ -83,3 +83,42 @@ export interface GetPeerFeedbackOutput {
     generalComments?: string
   }>
 }
+
+export interface GetPeerFeedbackRequestsInput {
+  reviewerId: UserId
+  cycleId: ReviewCycleId
+}
+
+export interface PeerFeedbackRequestDto {
+  nominationId: string
+  nominatorId: string
+  nominatorName: string
+  nominatorEmail: string
+  status: string
+  nominatedAt: Date
+  feedbackSubmitted: boolean
+}
+
+export interface GetPeerFeedbackRequestsOutput {
+  requests: PeerFeedbackRequestDto[]
+  total: number
+}
+
+export interface GetMyNominationsInput {
+  nominatorId: UserId
+  cycleId: ReviewCycleId
+}
+
+export interface MyNominationDto {
+  id: string
+  nomineeId: string
+  nomineeName: string
+  nomineeEmail: string
+  status: string
+  nominatedAt: Date
+}
+
+export interface GetMyNominationsOutput {
+  nominations: MyNominationDto[]
+  total: number
+}

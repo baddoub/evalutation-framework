@@ -66,8 +66,19 @@ export interface PeerNomination {
   id: string
   nomineeId: string
   nomineeName: string
-  status: NominationStatus
+  nomineeEmail?: string
+  status: NominationStatus | string
   nominatedAt: string
+}
+
+export interface PeerFeedbackRequestItem {
+  nominationId: string
+  nominatorId: string
+  nominatorName: string
+  nominatorEmail: string
+  status: string
+  nominatedAt: string
+  feedbackSubmitted: boolean
 }
 
 export interface PeerFeedback {

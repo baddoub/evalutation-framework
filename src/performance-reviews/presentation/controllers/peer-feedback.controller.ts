@@ -22,6 +22,8 @@ import { SubmitPeerFeedbackDto } from '../dto/requests/submit-peer-feedback.dto'
 import { NominatePeersUseCase } from '../../application/use-cases/peer-feedback/nominate-peers.use-case'
 import { SubmitPeerFeedbackUseCase } from '../../application/use-cases/peer-feedback/submit-peer-feedback.use-case'
 import { GetAggregatedPeerFeedbackUseCase } from '../../application/use-cases/peer-feedback/get-aggregated-peer-feedback.use-case'
+import { GetPeerFeedbackRequestsUseCase } from '../../application/use-cases/peer-feedback/get-peer-feedback-requests.use-case'
+import { GetMyNominationsUseCase } from '../../application/use-cases/peer-feedback/get-my-nominations.use-case'
 import { IUserRepository } from '../../../auth/domain/repositories/user.repository.interface'
 import { Email } from '../../../auth/domain/value-objects/email.vo'
 import { ReviewCycleId } from '../../domain/value-objects/review-cycle-id.vo'
@@ -37,6 +39,8 @@ export class PeerFeedbackController {
     private readonly nominatePeersUseCase: NominatePeersUseCase,
     private readonly submitPeerFeedbackUseCase: SubmitPeerFeedbackUseCase,
     private readonly getAggregatedPeerFeedbackUseCase: GetAggregatedPeerFeedbackUseCase,
+    private readonly getPeerFeedbackRequestsUseCase: GetPeerFeedbackRequestsUseCase,
+    private readonly getMyNominationsUseCase: GetMyNominationsUseCase,
     @Inject('IUserRepository')
     private readonly userRepository: IUserRepository,
   ) {}
@@ -99,6 +103,36 @@ export class PeerFeedbackController {
     }
   }
 
+  @Get('peer-nominations/mine')
+  @ApiParam({ name: 'cycleId', description: 'Review cycle ID', example: 'cycle-uuid-123' })
+  @ApiOperation({
+    summary: 'Get my peer nominations',
+    description: 'Get list of peers you have nominated to provide feedback on you',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Peer nominations retrieved successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getMyNominations(@Param('cycleId') cycleId: string, @CurrentUser() user: CurrentUserData) {
+    const result = await this.getMyNominationsUseCase.execute({
+      nominatorId: UserId.fromString(user.userId),
+      cycleId: ReviewCycleId.fromString(cycleId),
+    })
+
+    return {
+      nominations: result.nominations.map((nom) => ({
+        id: nom.id,
+        nomineeId: nom.nomineeId,
+        nomineeName: nom.nomineeName,
+        nomineeEmail: nom.nomineeEmail,
+        status: nom.status,
+        nominatedAt: nom.nominatedAt.toISOString(),
+      })),
+      total: result.total,
+    }
+  }
+
   @Get('peer-feedback/requests')
   @ApiParam({ name: 'cycleId', description: 'Review cycle ID', example: 'cycle-uuid-123' })
   @ApiOperation({
@@ -110,11 +144,26 @@ export class PeerFeedbackController {
     description: 'Peer feedback requests retrieved successfully',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getPeerFeedbackRequests() {
-    // Note: This would require a GetPeerFeedbackRequestsUseCase to be implemented
+  async getPeerFeedbackRequests(
+    @Param('cycleId') cycleId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    const result = await this.getPeerFeedbackRequestsUseCase.execute({
+      reviewerId: UserId.fromString(user.userId),
+      cycleId: ReviewCycleId.fromString(cycleId),
+    })
+
     return {
-      requests: [],
-      total: 0,
+      requests: result.requests.map((req) => ({
+        nominationId: req.nominationId,
+        nominatorId: req.nominatorId,
+        nominatorName: req.nominatorName,
+        nominatorEmail: req.nominatorEmail,
+        status: req.status,
+        nominatedAt: req.nominatedAt.toISOString(),
+        feedbackSubmitted: req.feedbackSubmitted,
+      })),
+      total: result.total,
     }
   }
 

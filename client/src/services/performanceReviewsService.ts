@@ -74,6 +74,13 @@ export const performanceReviewsService = {
     return data
   },
 
+  async getMyNominations(
+    cycleId: string,
+  ): Promise<{ nominations: PeerNomination[]; total: number }> {
+    const { data } = await api.get(`/performance-reviews/cycles/${cycleId}/peer-nominations/mine`)
+    return data
+  },
+
   async getPeerFeedbackRequests(
     cycleId: string,
   ): Promise<{ requests: PeerFeedbackRequest[]; total: number }> {
