@@ -27,10 +27,19 @@ const MyFinalScorePage: React.FC = () => {
       const activeCycle = await performanceReviewsService.getActiveCycle()
       setCycle(activeCycle)
 
-      const score = await performanceReviewsService.getMyFinalScore(activeCycle.id)
-      setFinalScore(score)
+      try {
+        const score = await performanceReviewsService.getMyFinalScore(activeCycle.id)
+        setFinalScore(score)
+      } catch (scoreErr: any) {
+        // If 404, final score not yet available - this is not an error
+        if (scoreErr.response?.status === 404) {
+          setFinalScore(null)
+        } else {
+          throw scoreErr
+        }
+      }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load final score')
+      setError(err.response?.data?.message || 'Failed to load data')
     } finally {
       setLoading(false)
     }
@@ -54,6 +63,25 @@ const MyFinalScorePage: React.FC = () => {
 
       <div className="page-content">
         {error && <ErrorMessage message={error} onRetry={loadData} />}
+
+        {!error && !finalScore && (
+          <div className="info-card">
+            <h3>Final Score Not Yet Available</h3>
+            <p>Your final performance score will be available after:</p>
+            <ul style={{ textAlign: 'left', margin: '16px auto', maxWidth: '400px' }}>
+              <li>All peer feedback has been collected</li>
+              <li>Your manager has completed their evaluation</li>
+              <li>The calibration process is complete</li>
+            </ul>
+            <p>Check back after the review cycle is finalized.</p>
+            {cycle && (
+              <p style={{ marginTop: '16px', color: '#666' }}>
+                <strong>Calibration deadline:</strong>{' '}
+                {new Date(cycle.deadlines.calibration).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+        )}
 
         {finalScore && (
           <>
