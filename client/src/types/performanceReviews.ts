@@ -115,10 +115,10 @@ export interface ManagerEvaluation {
   employeeId: string
   cycleId: string
   scores: PillarScores
+  narrative: string
   strengths: string
   growthAreas: string
-  promotionReadiness: string
-  overallAssessment: string
+  developmentPlan: string
   submittedAt?: string
   createdAt: string
   updatedAt: string
@@ -137,11 +137,12 @@ export interface EmployeeReview {
 export interface TeamReview {
   employeeId: string
   employeeName: string
-  employeeEmail: string
-  selfReviewStatus: SelfReviewStatus
+  employeeLevel: string
+  selfReviewStatus: string
   peerFeedbackCount: number
-  managerEvaluationStatus: string
-  finalScoreStatus: string
+  peerFeedbackStatus: string
+  managerEvalStatus: string
+  hasSubmittedEvaluation: boolean
 }
 
 export interface CalibrationStats {
@@ -226,10 +227,10 @@ export interface SubmitPeerFeedbackDto {
 
 export interface SubmitManagerEvaluationDto {
   scores: PillarScores
+  narrative: string
   strengths: string
   growthAreas: string
-  promotionReadiness: string
-  overallAssessment: string
+  developmentPlan: string
 }
 
 export interface RequestScoreAdjustmentDto {

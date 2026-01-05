@@ -14,6 +14,7 @@ import PeerNominationPage from './pages/performance-reviews/PeerNominationPage'
 import PeerFeedbackPage from './pages/performance-reviews/PeerFeedbackPage'
 import MyPeerFeedbackPage from './pages/performance-reviews/MyPeerFeedbackPage'
 import TeamReviewsPage from './pages/performance-reviews/TeamReviewsPage'
+import ManagerEmployeeReviewPage from './pages/performance-reviews/ManagerEmployeeReviewPage'
 import MyFinalScorePage from './pages/performance-reviews/MyFinalScorePage'
 import AdminReviewCyclesPage from './pages/performance-reviews/AdminReviewCyclesPage'
 import { useAuth } from './contexts/AuthContext'
@@ -80,6 +81,7 @@ function App() {
             <Route path="/reviews/peer-feedback" element={<PeerFeedbackPage />} />
             <Route path="/reviews/my-peer-feedback" element={<MyPeerFeedbackPage />} />
             <Route path="/reviews/team" element={<TeamReviewsPage />} />
+            <Route path="/reviews/manager/employee/:employeeId" element={<ManagerEmployeeReviewPage />} />
             <Route path="/reviews/final-score" element={<MyFinalScorePage />} />
             <Route path="/reviews/admin/cycles" element={<AdminReviewCyclesPage />} />
             <Route path="/reviews/post-project" element={<PostProjectReviewsPage />} />

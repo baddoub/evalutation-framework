@@ -67,11 +67,10 @@ const TeamReviewsPage: React.FC = () => {
               <thead>
                 <tr>
                   <th>Employee</th>
-                  <th>Email</th>
+                  <th>Level</th>
                   <th>Self-Review</th>
                   <th>Peer Feedback</th>
                   <th>Manager Eval</th>
-                  <th>Final Score</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -79,7 +78,7 @@ const TeamReviewsPage: React.FC = () => {
                 {teamReviews.map((review) => (
                   <tr key={review.employeeId}>
                     <td>{review.employeeName}</td>
-                    <td>{review.employeeEmail}</td>
+                    <td>{review.employeeLevel || 'N/A'}</td>
                     <td>
                       <span
                         className={`status-badge status-${review.selfReviewStatus.toLowerCase()}`}
@@ -89,19 +88,18 @@ const TeamReviewsPage: React.FC = () => {
                     </td>
                     <td>
                       <span className="feedback-count">{review.peerFeedbackCount} received</span>
-                    </td>
-                    <td>
                       <span
-                        className={`status-badge status-${review.managerEvaluationStatus.toLowerCase()}`}
+                        className={`status-badge status-${review.peerFeedbackStatus.toLowerCase()}`}
+                        style={{ marginLeft: '8px' }}
                       >
-                        {review.managerEvaluationStatus}
+                        {review.peerFeedbackStatus}
                       </span>
                     </td>
                     <td>
                       <span
-                        className={`status-badge status-${review.finalScoreStatus.toLowerCase()}`}
+                        className={`status-badge status-${review.managerEvalStatus.toLowerCase()}`}
                       >
-                        {review.finalScoreStatus}
+                        {review.managerEvalStatus}
                       </span>
                     </td>
                     <td>
@@ -109,7 +107,7 @@ const TeamReviewsPage: React.FC = () => {
                         onClick={() => handleViewEmployee(review.employeeId)}
                         className="btn-view"
                       >
-                        View Details
+                        {review.hasSubmittedEvaluation ? 'View' : 'Evaluate'}
                       </button>
                     </td>
                   </tr>
