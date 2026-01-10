@@ -1,4 +1,4 @@
-import { FiUser, FiBarChart2, FiRefreshCw, FiFileText, FiUsers, FiBookOpen } from 'react-icons/fi'
+import { FiUser, FiBarChart2, FiRefreshCw, FiFileText, FiUsers, FiBookOpen, FiSliders } from 'react-icons/fi'
 import { IconType } from 'react-icons'
 
 /**
@@ -182,6 +182,13 @@ export const navigationConfig: NavItem[] = [
     path: '/reviews/team',
     icon: FiUsers,
     roles: ['MANAGER', 'HR_ADMIN'],
+  },
+  {
+    id: 'calibration',
+    label: 'Calibration',
+    path: '/reviews/calibration',
+    icon: FiSliders,
+    roles: ['HR_ADMIN'],
   },
   {
     id: 'resources',

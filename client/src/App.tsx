@@ -16,6 +16,7 @@ import MyPeerFeedbackPage from './pages/performance-reviews/MyPeerFeedbackPage'
 import TeamReviewsPage from './pages/performance-reviews/TeamReviewsPage'
 import ManagerEmployeeReviewPage from './pages/performance-reviews/ManagerEmployeeReviewPage'
 import MyFinalScorePage from './pages/performance-reviews/MyFinalScorePage'
+import CalibrationDashboardPage from './pages/performance-reviews/CalibrationDashboardPage'
 import AdminReviewCyclesPage from './pages/performance-reviews/AdminReviewCyclesPage'
 import { useAuth } from './contexts/AuthContext'
 
@@ -28,6 +29,32 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
   }
 
   return user ? children : <Navigate to="/login" replace />
+}
+
+// Role-Protected Route component - requires specific roles to access
+interface RoleProtectedRouteProps {
+  children: React.ReactElement
+  allowedRoles: string[]
+}
+
+const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({ children, allowedRoles }) => {
+  const { user, loading, hasRole } = useAuth()
+
+  if (loading) {
+    return <div className="loading-screen">Loading...</div>
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+
+  const hasRequiredRole = allowedRoles.some((role) => hasRole(role))
+
+  if (!hasRequiredRole) {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  return children
 }
 
 // Public Route component (redirects to dashboard if already logged in)
@@ -80,10 +107,39 @@ function App() {
             <Route path="/reviews/peer-nomination" element={<PeerNominationPage />} />
             <Route path="/reviews/peer-feedback" element={<PeerFeedbackPage />} />
             <Route path="/reviews/my-peer-feedback" element={<MyPeerFeedbackPage />} />
-            <Route path="/reviews/team" element={<TeamReviewsPage />} />
-            <Route path="/reviews/manager/employee/:employeeId" element={<ManagerEmployeeReviewPage />} />
+            <Route
+              path="/reviews/team"
+              element={
+                <RoleProtectedRoute allowedRoles={['MANAGER', 'HR_ADMIN']}>
+                  <TeamReviewsPage />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/reviews/manager/employee/:employeeId"
+              element={
+                <RoleProtectedRoute allowedRoles={['MANAGER', 'HR_ADMIN']}>
+                  <ManagerEmployeeReviewPage />
+                </RoleProtectedRoute>
+              }
+            />
             <Route path="/reviews/final-score" element={<MyFinalScorePage />} />
-            <Route path="/reviews/admin/cycles" element={<AdminReviewCyclesPage />} />
+            <Route
+              path="/reviews/calibration"
+              element={
+                <RoleProtectedRoute allowedRoles={['HR_ADMIN']}>
+                  <CalibrationDashboardPage />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/reviews/admin/cycles"
+              element={
+                <RoleProtectedRoute allowedRoles={['HR_ADMIN']}>
+                  <AdminReviewCyclesPage />
+                </RoleProtectedRoute>
+              }
+            />
             <Route path="/reviews/post-project" element={<PostProjectReviewsPage />} />
             <Route path="/reviews/history" element={<PerformanceHistoryPage />} />
           </Route>

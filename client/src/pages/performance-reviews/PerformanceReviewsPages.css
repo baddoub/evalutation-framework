@@ -644,3 +644,363 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ========================================
+   CALIBRATION DASHBOARD STYLES
+   ======================================== */
+
+/* Summary Cards */
+.calibration-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--neo-space-4);
+  margin-bottom: var(--neo-space-6);
+}
+
+.summary-card {
+  background: var(--neo-white);
+  padding: var(--neo-space-5);
+  border: var(--neo-border);
+  text-align: center;
+  box-shadow: var(--neo-shadow);
+  border-left-width: 6px;
+}
+
+.summary-label {
+  font-size: var(--neo-text-xs);
+  font-weight: var(--neo-font-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--neo-space-2);
+  color: var(--neo-gray-600);
+}
+
+.summary-value {
+  font-size: var(--neo-text-3xl);
+  font-weight: var(--neo-font-black);
+  color: var(--neo-black);
+}
+
+.summary-percent {
+  font-size: var(--neo-text-sm);
+  font-weight: var(--neo-font-medium);
+  margin-left: var(--neo-space-2);
+  opacity: 0.7;
+}
+
+/* Distribution Bar */
+.distribution-bar {
+  display: flex;
+  height: 40px;
+  border: var(--neo-border);
+  overflow: hidden;
+  margin-bottom: var(--neo-space-4);
+}
+
+.distribution-segment {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.distribution-segment.exceeds {
+  background: #22c55e;
+}
+
+.distribution-segment.meets {
+  background: #3b82f6;
+}
+
+.distribution-segment.below {
+  background: #ef4444;
+}
+
+.distribution-legend {
+  display: flex;
+  justify-content: center;
+  gap: var(--neo-space-6);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--neo-space-2);
+  font-size: var(--neo-text-sm);
+  font-weight: var(--neo-font-medium);
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border: var(--neo-border-thin);
+}
+
+.legend-color.exceeds {
+  background: #22c55e;
+}
+
+.legend-color.meets {
+  background: #3b82f6;
+}
+
+.legend-color.below {
+  background: #ef4444;
+}
+
+/* Calibration Actions */
+.calibration-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--neo-space-4);
+}
+
+.btn-lock {
+  padding: var(--neo-space-3) var(--neo-space-6);
+  background: var(--neo-purple);
+  color: var(--neo-white);
+  border: var(--neo-border);
+  cursor: pointer;
+  font-weight: var(--neo-font-bold);
+  font-size: var(--neo-text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: var(--neo-shadow);
+  transition: all var(--neo-transition-fast);
+}
+
+.btn-lock:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--neo-shadow-md);
+}
+
+.btn-lock:disabled {
+  background: var(--neo-gray-400);
+  cursor: not-allowed;
+  box-shadow: var(--neo-shadow-sm);
+}
+
+/* Calibration Table */
+.calibration-table .employee-cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--neo-space-1);
+}
+
+.calibration-table .employee-name {
+  font-weight: var(--neo-font-bold);
+  color: var(--neo-black);
+}
+
+.calibration-table .employee-level {
+  font-size: var(--neo-text-xs);
+  color: var(--neo-gray-500);
+}
+
+.calibration-table .score-cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--neo-space-1);
+}
+
+.calibration-table .weighted-score {
+  font-weight: var(--neo-font-black);
+  font-size: var(--neo-text-lg);
+  color: var(--neo-black);
+}
+
+.calibration-table .percentage-score {
+  font-size: var(--neo-text-xs);
+  color: var(--neo-gray-500);
+}
+
+/* Employee Info Grid (Manager Review Page) */
+.employee-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--neo-space-4);
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--neo-space-1);
+}
+
+.info-label {
+  font-size: var(--neo-text-xs);
+  font-weight: var(--neo-font-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--neo-gray-500);
+}
+
+.info-value {
+  font-size: var(--neo-text-base);
+  font-weight: var(--neo-font-medium);
+  color: var(--neo-black);
+}
+
+/* Scores Grid */
+.scores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--neo-space-4);
+  margin-bottom: var(--neo-space-4);
+}
+
+.score-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--neo-space-1);
+  padding: var(--neo-space-3);
+  background: var(--neo-gray-100);
+  border: var(--neo-border-thin);
+}
+
+.score-label {
+  font-size: var(--neo-text-xs);
+  font-weight: var(--neo-font-bold);
+  text-transform: uppercase;
+  color: var(--neo-gray-600);
+}
+
+.score-value {
+  font-size: var(--neo-text-xl);
+  font-weight: var(--neo-font-black);
+  color: var(--neo-black);
+}
+
+/* Narrative Section */
+.narrative-section h4 {
+  font-size: var(--neo-text-sm);
+  font-weight: var(--neo-font-bold);
+  text-transform: uppercase;
+  margin-bottom: var(--neo-space-2);
+  color: var(--neo-black);
+}
+
+.narrative-section p {
+  font-size: var(--neo-text-sm);
+  line-height: 1.7;
+  color: var(--neo-gray-700);
+}
+
+.no-data {
+  color: var(--neo-gray-500);
+  font-style: italic;
+  text-align: center;
+  padding: var(--neo-space-6);
+}
+
+/* Feedback List */
+.feedback-list {
+  margin-top: var(--neo-space-4);
+}
+
+.feedback-list h4 {
+  font-size: var(--neo-text-sm);
+  font-weight: var(--neo-font-bold);
+  text-transform: uppercase;
+  margin-bottom: var(--neo-space-3);
+}
+
+.feedback-item {
+  padding: var(--neo-space-4);
+  background: var(--neo-white);
+  border: var(--neo-border);
+  margin-bottom: var(--neo-space-3);
+  box-shadow: var(--neo-shadow-sm);
+}
+
+.feedback-header {
+  margin-bottom: var(--neo-space-2);
+}
+
+.feedback-section {
+  margin-top: var(--neo-space-2);
+}
+
+.section-label {
+  font-size: var(--neo-text-xs);
+  font-weight: var(--neo-font-bold);
+  text-transform: uppercase;
+  color: var(--neo-gray-500);
+}
+
+.feedback-section p {
+  font-size: var(--neo-text-sm);
+  margin: var(--neo-space-1) 0 0 0;
+  color: var(--neo-gray-700);
+}
+
+/* Evaluation Form */
+.evaluation-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--neo-space-4);
+}
+
+.evaluation-form h4 {
+  font-size: var(--neo-text-sm);
+  font-weight: var(--neo-font-bold);
+  text-transform: uppercase;
+  margin-bottom: var(--neo-space-2);
+}
+
+.scores-input-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--neo-space-4);
+  margin-bottom: var(--neo-space-4);
+}
+
+.evaluation-form .form-group label {
+  display: block;
+  font-size: var(--neo-text-sm);
+  font-weight: var(--neo-font-bold);
+  margin-bottom: var(--neo-space-2);
+  color: var(--neo-black);
+}
+
+.evaluation-form textarea {
+  width: 100%;
+  padding: var(--neo-space-3);
+  border: var(--neo-border);
+  font-size: var(--neo-text-sm);
+  font-family: var(--neo-font-body);
+  resize: vertical;
+  box-shadow: var(--neo-shadow-sm);
+}
+
+.evaluation-form textarea:focus {
+  outline: none;
+  box-shadow: var(--neo-shadow);
+}
+
+.btn-submit {
+  padding: var(--neo-space-4) var(--neo-space-8);
+  background: var(--neo-lime);
+  color: var(--neo-black);
+  border: var(--neo-border);
+  cursor: pointer;
+  font-weight: var(--neo-font-bold);
+  font-size: var(--neo-text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: var(--neo-shadow);
+  transition: all var(--neo-transition-fast);
+  align-self: flex-start;
+}
+
+.btn-submit:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--neo-shadow-md);
+}
+
+.btn-submit:disabled {
+  background: var(--neo-gray-300);
+  cursor: not-allowed;
+}
+
+.evaluation-status {
+  margin-bottom: var(--neo-space-4);
+}
